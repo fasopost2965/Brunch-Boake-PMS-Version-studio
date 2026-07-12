@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #fcfaf7;
+  --color-on-background: #423d38;
+  --color-surface: #f3f4f6;
+  --color-surface-soft: #edebe9;
+  --color-surface-elevated: #ffffff;
+  --color-on-surface: #423d38;
+  --color-on-surface-muted: #797067;
+  --color-outline-custom: #e3e0dd;
+  --color-outline-strong: #d1d5dc;
+  --color-primary-custom: #fe6e00;
+  --color-primary-strong: #ff6b00;
+  --color-primary-warm: #ffb74d;
+  --color-primary-focus: #f97015;
+  --color-success-custom: #00c758;
+  --color-warning-custom: #edb200;
+  --color-danger-custom: #fb2c36;
+  --color-info-custom: #3080ff;
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-scale-up: scale-up 0.25s ease-out;
+  --animate-spin-slow: spin 8s linear infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-up {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+@layer base {
+  body {
+    background-color: #fcfaf7;
+    color: #423d38;
+  }
+}

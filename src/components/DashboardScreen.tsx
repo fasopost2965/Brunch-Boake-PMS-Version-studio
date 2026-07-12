@@ -65,7 +65,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         {/* Occupancy Card */}
         <div 
           onClick={() => setActiveTab('rooms')}
-          className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex items-center justify-between hover:shadow-md transition-all cursor-pointer"
+          className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
           id="kpi_occupancy"
         >
           <div className="flex flex-col gap-1">
@@ -73,7 +73,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             <span className="text-2xl font-extrabold text-[#423d38]">{occupancyRate}%</span>
             <span className="text-[11px] text-[#797067]">{occupiedRooms} / {totalRooms} Chambres occupées</span>
           </div>
-          <div className="bg-[#fe6e00]/10 p-3 rounded-lg text-[#fe6e00]">
+          <div className="bg-[#fe6e00]/10 p-3 rounded-xl text-[#fe6e00]">
             <Percent className="w-5 h-5" />
           </div>
         </div>
@@ -81,7 +81,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         {/* Today's Arrivals Card */}
         <div 
           onClick={() => setActiveTab('arrivals')}
-          className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex items-center justify-between hover:shadow-md transition-all cursor-pointer"
+          className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
           id="kpi_arrivals"
         >
           <div className="flex flex-col gap-1">
@@ -89,7 +89,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             <span className="text-2xl font-extrabold text-[#423d38]">{todayArrivals.length}</span>
             <span className="text-[11px] text-[#797067]">{activeStaysCount} Séjours en cours</span>
           </div>
-          <div className="bg-[#3080ff]/10 p-3 rounded-lg text-[#3080ff]">
+          <div className="bg-[#3080ff]/10 p-3 rounded-xl text-[#3080ff]">
             <ClipboardList className="w-5 h-5" />
           </div>
         </div>
@@ -97,7 +97,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         {/* Revenues Card */}
         <div 
           onClick={() => setActiveTab('payments')}
-          className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex items-center justify-between hover:shadow-md transition-all cursor-pointer"
+          className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
           id="kpi_revenues"
         >
           <div className="flex flex-col gap-1">
@@ -105,7 +105,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             <span className="text-2xl font-extrabold text-[#423d38]">{totalReceived.toLocaleString()} F</span>
             <span className="text-[11px] text-[#797067]">Encours factures : {totalPendingBill.toLocaleString()} F</span>
           </div>
-          <div className="bg-[#00c758]/10 p-3 rounded-lg text-[#00c758]">
+          <div className="bg-[#00c758]/10 p-3 rounded-xl text-[#00c758]">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
@@ -113,7 +113,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         {/* Housekeeping/Maintenance Card */}
         <div 
           onClick={() => setActiveTab('maintenance')}
-          className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex items-center justify-between hover:shadow-md transition-all cursor-pointer"
+          className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
           id="kpi_housekeeping"
         >
           <div className="flex flex-col gap-1">
@@ -121,7 +121,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             <span className="text-2xl font-extrabold text-[#423d38]">{dirtyRooms + openMaintenance}</span>
             <span className="text-[11px] text-[#797067]">{dirtyRooms} Sales • {openMaintenance} Tickets</span>
           </div>
-          <div className="bg-[#fb2c36]/10 p-3 rounded-lg text-[#fb2c36]">
+          <div className="bg-[#fb2c36]/10 p-3 rounded-xl text-[#fb2c36]">
             <Wrench className="w-5 h-5" />
           </div>
         </div>
@@ -131,7 +131,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="dashboard_sections">
         {/* Left Column: Quick Actions & Today's arrivals list */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-[#423d38] text-sm">Arrivées attendues aujourd'hui</h3>
               <button 
@@ -143,20 +143,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             </div>
 
             {todayArrivals.length === 0 ? (
-              <div className="text-center py-6 bg-[#f3f4f6] rounded-lg border border-dashed border-[#e3e0dd]">
+              <div className="text-center py-6 bg-[#f3f4f6]/50 rounded-xl border border-dashed border-[#e3e0dd]/60">
                 <span className="text-[#797067] text-xs">Aucune arrivée enregistrée pour aujourd'hui.</span>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
                 {todayArrivals.map(arr => (
-                  <div key={arr.id} className="flex justify-between items-center p-3 bg-[#f3f4f6]/50 rounded-lg hover:bg-[#f3f4f6] transition-all border border-[#e3e0dd]">
+                  <div key={arr.id} className="flex justify-between items-center p-3 bg-[#f3f4f6]/50 rounded-xl hover:bg-[#f3f4f6]/80 hover:scale-[1.005] transition-all border border-[#e3e0dd]/80">
                     <div className="flex flex-col">
                       <span className="font-bold text-[#423d38] text-xs">{arr.guestName}</span>
                       <span className="text-[10px] text-[#797067]">{arr.guestEmail} • Chambre {arr.roomNumber}</span>
                     </div>
                     <button
                       onClick={() => setActiveTab('checkin')}
-                      className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white text-[10px] font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+                      className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
                     >
                       Check-In
                     </button>
@@ -167,14 +167,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           </div>
 
           {/* Quick Actions Panel */}
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
             <h3 className="font-bold text-[#423d38] text-sm">Raccourcis Opérations PMS</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => setActiveTab('checkin')}
-                className="bg-[#f3f4f6]/50 hover:bg-[#fe6e00]/5 hover:text-[#fe6e00] p-4 rounded-lg border border-[#e3e0dd] hover:border-[#fe6e00]/30 transition-all flex flex-col gap-2 group cursor-pointer text-left"
+                className="bg-white/40 hover:bg-[#fe6e00]/5 hover:text-[#fe6e00] p-4 rounded-xl border border-[#e3e0dd]/80 hover:border-[#fe6e00]/30 transition-all flex flex-col gap-2 group cursor-pointer text-left shadow-sm hover:shadow"
               >
-                <span className="bg-[#fe6e00]/10 text-[#fe6e00] p-2 rounded-md w-fit group-hover:bg-[#fe6e00]/20 transition-colors">
+                <span className="bg-[#fe6e00]/10 text-[#fe6e00] p-2 rounded-xl w-fit group-hover:bg-[#fe6e00]/20 transition-colors">
                   <Plus className="w-4 h-4" />
                 </span>
                 <span className="font-bold text-[#423d38] text-xs block group-hover:text-[#fe6e00]">Arrivée Walk-In</span>
@@ -183,9 +183,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
               <button
                 onClick={() => setActiveTab('billing')}
-                className="bg-[#f3f4f6]/50 hover:bg-[#fe6e00]/5 hover:text-[#fe6e00] p-4 rounded-lg border border-[#e3e0dd] hover:border-[#fe6e00]/30 transition-all flex flex-col gap-2 group cursor-pointer text-left"
+                className="bg-white/40 hover:bg-[#fe6e00]/5 hover:text-[#fe6e00] p-4 rounded-xl border border-[#e3e0dd]/80 hover:border-[#fe6e00]/30 transition-all flex flex-col gap-2 group cursor-pointer text-left shadow-sm hover:shadow"
               >
-                <span className="bg-[#fe6e00]/10 text-[#fe6e00] p-2 rounded-md w-fit group-hover:bg-[#fe6e00]/20 transition-colors">
+                <span className="bg-[#fe6e00]/10 text-[#fe6e00] p-2 rounded-xl w-fit group-hover:bg-[#fe6e00]/20 transition-colors">
                   <CreditCard className="w-4 h-4" />
                 </span>
                 <span className="font-bold text-[#423d38] text-xs block group-hover:text-[#fe6e00]">Facturer Extra / Brunch</span>
@@ -194,9 +194,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
               <button
                 onClick={() => setActiveTab('housekeeping')}
-                className="bg-[#f3f4f6]/50 hover:bg-[#fe6e00]/5 hover:text-[#fe6e00] p-4 rounded-lg border border-[#e3e0dd] hover:border-[#fe6e00]/30 transition-all flex flex-col gap-2 group cursor-pointer text-left"
+                className="bg-white/40 hover:bg-[#fe6e00]/5 hover:text-[#fe6e00] p-4 rounded-xl border border-[#e3e0dd]/80 hover:border-[#fe6e00]/30 transition-all flex flex-col gap-2 group cursor-pointer text-left shadow-sm hover:shadow"
               >
-                <span className="bg-[#fe6e00]/10 text-[#fe6e00] p-2 rounded-md w-fit group-hover:bg-[#fe6e00]/20 transition-colors">
+                <span className="bg-[#fe6e00]/10 text-[#fe6e00] p-2 rounded-xl w-fit group-hover:bg-[#fe6e00]/20 transition-colors">
                   <Sparkles className="w-4 h-4" />
                 </span>
                 <span className="font-bold text-[#423d38] text-xs block group-hover:text-[#fe6e00]">Gouvernance & Ménage</span>
@@ -208,7 +208,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
         {/* Right Column: Key performance and list of rooms status */}
         <div className="flex flex-col gap-6">
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
             <h3 className="font-bold text-[#423d38] text-sm">Chambres par Statut</h3>
             <div className="flex flex-col gap-2.5 text-xs text-[#423d38]">
               <div className="flex justify-between items-center">
@@ -239,13 +239,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
             <button
               onClick={() => setActiveTab('rooms')}
-              className="w-full bg-[#423d38] hover:bg-[#423d38]/90 text-white font-bold py-2 rounded-lg text-xs transition-colors cursor-pointer text-center"
+              className="w-full bg-[#423d38] hover:bg-[#423d38]/90 text-white font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer text-center"
             >
               Voir le plan de l'hôtel
             </button>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
             <div className="flex items-center gap-2.5">
               <Users className="w-5 h-5 text-[#fe6e00]" />
               <h3 className="font-bold text-[#423d38] text-sm">Registre Clients</h3>
@@ -255,7 +255,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             </p>
             <button
               onClick={() => setActiveTab('guests')}
-              className="w-full bg-[#edebe9] hover:bg-[#edebe9]/80 text-[#423d38] font-bold py-2 rounded-lg text-xs transition-colors cursor-pointer text-center"
+              className="w-full bg-[#edebe9] hover:bg-[#edebe9]/80 text-[#423d38] font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer text-center"
             >
               Gérer la base clients
             </button>

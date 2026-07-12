@@ -79,8 +79,8 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
       </div>
 
       {inHouseStays.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col items-center gap-2">
-          <div className="bg-[#fe6e00]/10 p-4 rounded-full text-[#fe6e00]">
+        <div className="bg-white/80 backdrop-blur-md p-12 text-center rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col items-center gap-2">
+          <div className="bg-[#fe6e00]/10 p-4 rounded-xl text-[#fe6e00]">
             <Home className="w-8 h-8" />
           </div>
           <span className="font-bold text-[#423d38] text-sm">Aucun client en séjour actuellement</span>
@@ -95,14 +95,14 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
             return (
               <div 
                 key={res.id} 
-                className="bg-white border border-[#e3e0dd] rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-all relative overflow-hidden"
+                className="bg-white/80 backdrop-blur-md border border-[#e3e0dd]/80 rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4 hover:shadow-md hover:scale-[1.01] transition-all relative overflow-hidden"
               >
                 {/* Visual indicator corner */}
                 <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#fe6e00] rounded-bl-lg"></span>
 
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-extrabold text-[#fe6e00] uppercase bg-[#fe6e00]/10 border border-[#fe6e00]/20 px-2 py-0.5 rounded w-fit">
+                    <span className="text-[9px] font-extrabold text-[#fe6e00] uppercase bg-[#fe6e00]/10 border border-[#fe6e00]/20 px-2 py-0.5 rounded-xl w-fit">
                       CH {res.roomNumber}
                     </span>
                     <h3 className="font-bold text-[#423d38] text-sm mt-1">{res.guestName}</h3>
@@ -114,7 +114,7 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
                   </span>
                 </div>
 
-                <div className="h-px bg-[#e3e0dd]"></div>
+                <div className="h-px bg-[#e3e0dd]/80"></div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
@@ -133,7 +133,7 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
 
                 <button
                   onClick={() => initiateCheckOut(res)}
-                  className="w-full bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold py-2 rounded-md text-xs flex items-center justify-center gap-2 transition-all cursor-pointer mt-1"
+                  className="w-full bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer mt-1"
                 >
                   <LogOut className="w-4 h-4" />
                   Procéder au Check-Out
@@ -146,23 +146,23 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
 
       {/* CHECK-OUT CONFIRMATION / SETTLEMENT MODAL */}
       {selectedResForCheckOut && (
-        <div className="fixed inset-0 bg-[#423d38]/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md border border-[#e3e0dd] shadow-2xl flex flex-col overflow-hidden animate-scale-up text-xs">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-md rounded-xl w-full max-w-md max-h-[90vh] border border-[#e3e0dd]/80 shadow-2xl flex flex-col overflow-hidden animate-scale-up text-xs">
             
-            <div className="bg-[#fe6e00]/5 border-b border-[#e3e0dd] px-5 py-4 flex items-center justify-between">
+            <div className="bg-[#fe6e00]/5 border-b border-[#e3e0dd]/80 px-5 py-4 flex items-center justify-between shrink-0">
               <h3 className="font-bold text-[#423d38] text-sm flex items-center gap-2">
                 <LogOut className="w-5 h-5 text-[#fe6e00]" /> Règlement & Départ (Check-Out)
               </h3>
               <button 
                 onClick={() => setSelectedResForCheckOut(null)}
-                className="text-[#797067] hover:text-[#423d38] font-bold p-1 hover:bg-[#f3f4f6] rounded-lg"
+                className="text-[#797067] hover:text-[#423d38] font-bold p-1 hover:bg-[#f3f4f6]/80 rounded-xl"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-5 flex flex-col gap-4">
-              <div className="flex flex-col gap-1 text-[#423d38] bg-[#f3f4f6] p-4 rounded-lg border border-[#e3e0dd]">
+            <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1">
+              <div className="flex flex-col gap-1 text-[#423d38] bg-[#f3f4f6]/50 p-4 rounded-xl border border-[#e3e0dd]/80">
                 <span className="text-[10px] font-bold text-[#797067] uppercase tracking-wider">Fiche Client de départ</span>
                 <span className="font-bold text-[#423d38] text-sm">{selectedResForCheckOut.guestName}</span>
                 <span>Chambre : <strong>CH {selectedResForCheckOut.roomNumber}</strong></span>
@@ -170,11 +170,11 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="flex justify-between font-semibold border-b border-[#e3e0dd] pb-1.5 text-[#797067]">
+                <div className="flex justify-between font-semibold border-b border-[#e3e0dd]/80 pb-1.5 text-[#797067]">
                   <span>Facture Globale de séjour :</span>
                   <span className="text-[#423d38] font-bold">{selectedResForCheckOut.totalBill.toLocaleString()} F</span>
                 </div>
-                <div className="flex justify-between font-semibold border-b border-[#e3e0dd] pb-1.5 text-[#797067]">
+                <div className="flex justify-between font-semibold border-b border-[#e3e0dd]/80 pb-1.5 text-[#797067]">
                   <span>Montant déjà versé :</span>
                   <span className="text-[#016630] font-bold">{selectedResForCheckOut.paidAmount.toLocaleString()} F</span>
                 </div>
@@ -187,14 +187,14 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
               </div>
 
               {(selectedResForCheckOut.totalBill - selectedResForCheckOut.paidAmount) > 0 ? (
-                <div className="bg-[#fef2f2] border border-[#fb2c36]/20 p-4 rounded-lg flex flex-col gap-3">
+                <div className="bg-[#fef2f2]/60 border border-[#fb2c36]/20 p-4 rounded-xl flex flex-col gap-3">
                   <span className="font-bold text-[#fb2c36]">Règlement du solde restant :</span>
                   <div className="flex flex-col gap-1">
                     <label className="font-bold text-[#fb2c36] text-[9px] uppercase tracking-wider">Mode de paiement du solde :</label>
                     <select
                       value={settlementMethod}
                       onChange={(e) => setSettlementMethod(e.target.value as any)}
-                      className="bg-white border border-[#fb2c36]/20 rounded-md p-2 focus:outline-none focus:border-[#fe6e00] text-[#423d38] font-semibold"
+                      className="bg-white border border-[#fb2c36]/20 rounded-xl p-2 focus:outline-none focus:border-[#fe6e00] text-[#423d38] font-semibold"
                     >
                       <option value="Espèces">Espèces (Cash)</option>
                       <option value="Orange Money">Orange Money</option>
@@ -206,13 +206,13 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
 
                   <button
                     onClick={() => handleCompleteCheckOut(true)}
-                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold py-2 rounded-md transition-colors cursor-pointer text-center text-xs"
+                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold py-2 rounded-xl transition-colors cursor-pointer text-center text-xs"
                   >
                     Enregistrer le solde et Libérer la chambre
                   </button>
                 </div>
               ) : (
-                <div className="bg-[#dcfce7] border border-[#016630]/20 p-4 rounded-lg text-center text-[#016630] font-bold">
+                <div className="bg-[#dcfce7]/60 border border-[#016630]/20 p-4 rounded-xl text-center text-[#016630] font-bold">
                   Aucun solde restant dû ! Ce client est entièrement à jour.
                 </div>
               )}
@@ -221,14 +221,14 @@ export const InHouseScreen: React.FC<InHouseScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedResForCheckOut(null)}
-                  className="bg-[#f3f4f6] hover:bg-[#e3e0dd] text-[#423d38] font-bold px-4 py-2 rounded-md transition-all cursor-pointer"
+                  className="bg-[#f3f4f6]/50 hover:bg-[#e3e0dd]/80 text-[#423d38] font-bold px-4 py-2 rounded-xl transition-all cursor-pointer"
                 >
                   Fermer
                 </button>
                 {(selectedResForCheckOut.totalBill - selectedResForCheckOut.paidAmount) === 0 && (
                   <button
                     onClick={() => handleCompleteCheckOut(false)}
-                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-5 py-2 rounded-md transition-colors cursor-pointer"
+                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-5 py-2 rounded-xl transition-colors cursor-pointer"
                   >
                     Confirmer le Départ
                   </button>

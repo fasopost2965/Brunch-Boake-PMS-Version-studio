@@ -874,13 +874,13 @@ export const FrontDeskScreen: React.FC<FrontDeskScreenProps> = ({
       {/* QUICK ADD EXTRA MODAL DIALOG */}
       {selectedStayIdForExtras && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-xl max-w-sm w-full p-6 flex flex-col gap-4 animate-scale-in">
-            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-3 text-[#423d38] font-bold">
+          <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-xl max-w-sm w-full max-h-[90vh] flex flex-col overflow-hidden p-6 gap-4 animate-scale-in">
+            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-3 text-[#423d38] font-bold shrink-0">
               <Coffee className="w-5 h-5 text-[#fe6e00]" />
               <h3 className="text-sm">Ajouter une Consommation / Extra</h3>
             </div>
 
-            <form onSubmit={handleAddExtra} className="flex flex-col gap-4 text-xs">
+            <form onSubmit={handleAddExtra} className="flex flex-col gap-4 text-xs overflow-y-auto flex-1 pr-1">
               <div className="flex flex-col gap-1">
                 <label className="font-bold text-[#797067] uppercase tracking-widest text-[9px]">Description de l'Extra :</label>
                 <select
@@ -968,13 +968,13 @@ export const FrontDeskScreen: React.FC<FrontDeskScreenProps> = ({
       {/* DETAILED CHECKOUT & PAY MODAL DIALOG */}
       {selectedStayForCheckout && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-xl max-w-md w-full p-6 flex flex-col gap-4 animate-scale-in">
-            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-3 text-[#423d38] font-bold">
+          <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden p-6 gap-4 animate-scale-in">
+            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-3 text-[#423d38] font-bold shrink-0">
               <LogOut className="w-5 h-5 text-[#fb2c36]" />
               <h3 className="text-sm">Enregistrement du Check-Out • CH {selectedStayForCheckout.roomNumber}</h3>
             </div>
 
-            <div className="text-xs text-[#423d38] flex flex-col gap-3">
+            <div className="text-xs text-[#423d38] flex flex-col gap-3 overflow-y-auto flex-1 pr-1">
               <div className="bg-[#f3f4f6] p-3 rounded-lg border border-[#e3e0dd] flex flex-col gap-2">
                 <div className="flex justify-between font-bold">
                   <span>Client :</span>

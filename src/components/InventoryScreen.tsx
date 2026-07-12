@@ -73,9 +73,13 @@ const DEFAULT_MOVEMENTS: InventoryMovement[] = [
 
 interface InventoryScreenProps {
   triggerToast?: (msg: string) => void;
+  currentUserRole?: string;
 }
 
-export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: propTriggerToast }) => {
+export const InventoryScreen: React.FC<InventoryScreenProps> = ({ 
+  triggerToast: propTriggerToast,
+  currentUserRole
+}) => {
   // PERSISTENCE VIA LOCALSTORAGE
   const [articles, setArticles] = useState<InventoryArticle[]>(() => {
     const saved = localStorage.getItem('pms_inventory_articles');
@@ -215,6 +219,7 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
   const [articleSupplier, setArticleSupplier] = useState('');
   const [articleUnit, setArticleUnit] = useState('Unité');
   const [articleDesc, setArticleDesc] = useState('');
+  const [articleInitialStock, setArticleInitialStock] = useState('0');
 
   // 2. Movement Form
   const [showMovementModal, setShowMovementModal] = useState(false);
@@ -255,6 +260,7 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
     setArticleSupplier(suppliers[0]?.id || '');
     setArticleUnit('Unité');
     setArticleDesc('');
+    setArticleInitialStock('0');
     setShowArticleModal(true);
   };
 
@@ -270,6 +276,7 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
     setArticleSupplier(art.supplierId);
     setArticleUnit(art.unit);
     setArticleDesc(art.description || '');
+    setArticleInitialStock('0');
     setShowArticleModal(true);
   };
 
@@ -315,7 +322,7 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
       setArticles(prev => [...prev, newArt]);
 
       // Add initial stock movement if quantity > 0
-      const initialQty = Number(articleMinStock) || 0;
+      const initialQty = Number(articleInitialStock) || 0;
       if (initialQty > 0) {
         const initialMov: InventoryMovement = {
           id: `MOV-${Date.now()}`,
@@ -336,6 +343,10 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
 
   // SOFT DELETION OR DEACTIVATION OF ARTICLE
   const handleDeleteArticle = (id: string) => {
+    if (currentUserRole !== 'admin' && currentUserRole !== 'gerant') {
+      triggerToast(`Accès refusé : Seul un Administrateur ou un Gérant peut supprimer un article.`);
+      return;
+    }
     const art = articles.find(a => a.id === id);
     if (!art) return;
 
@@ -1266,121 +1277,243 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
       {/* 1. MODAL ARTICLE (CREATE OR EDIT) */}
       {showArticleModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-lg w-full overflow-hidden animate-scale-up">
-            <div className="bg-black text-white p-4 flex justify-between items-center">
-              <span className="font-extrabold text-xs uppercase tracking-widest text-[#fe6e00]">
-                {editingArticle ? 'Modifier l\'Article' : 'Ajouter un Article d\'Inventaire'}
-              </span>
-              <button onClick={() => setShowArticleModal(false)} className="text-white hover:text-[#fe6e00] font-bold text-base cursor-pointer">×</button>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-up">
+            
+            {/* Modal Header */}
+            <div className="bg-[#423d38] text-white p-5 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="bg-[#fe6e00] text-white p-1.5 rounded-lg">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm tracking-wide">
+                    {editingArticle ? 'Modifier la Fiche Article' : 'Nouveau Matériel / Article'}
+                  </h3>
+                  <p className="text-[10px] text-gray-300 mt-0.5">Enregistrer un article dans le catalogue général d'inventaire</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowArticleModal(false)} 
+                className="text-gray-400 hover:text-white transition-colors font-bold text-xl cursor-pointer"
+              >
+                ×
+              </button>
             </div>
 
-            <form onSubmit={handleSaveArticle} className="p-5 flex flex-col gap-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Désignation / Nom de l'Article :</label>
-                  <input 
-                    type="text" required placeholder="Ex: Café Arabica grains 1kg"
-                    value={articleName} onChange={(e) => setArticleName(e.target.value)}
-                    className="border rounded p-2 focus:outline-none focus:border-[#fe6e00]"
-                  />
+            <form onSubmit={handleSaveArticle} className="p-4 sm:p-6 overflow-y-auto flex flex-col gap-5 text-xs bg-[#fcfaf7]">
+              
+              {/* SECTION 1: GENERAL INFO */}
+              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3">
+                <span className="font-extrabold text-[#fe6e00] uppercase text-[9px] tracking-widest border-b pb-1 mb-1 block">
+                  1. Informations Générales
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px]">Nom / Désignation :</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="Ex: Café Arabica grains 1kg"
+                      value={articleName} 
+                      onChange={(e) => setArticleName(e.target.value)}
+                      className="border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] font-semibold text-gray-800"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px] flex justify-between items-center">
+                      <span>Code SKU :</span>
+                      <button 
+                        type="button"
+                        onClick={() => setArticleSku(`SKU-${Math.floor(100000 + Math.random() * 900000)}`)}
+                        className="text-[#fe6e00] hover:underline font-extrabold text-[8px] uppercase lowercase-none"
+                      >
+                        Générer aléatoire
+                      </button>
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input 
+                        type="text" 
+                        required 
+                        placeholder="Ex: HK-SAV-01"
+                        value={articleSku} 
+                        onChange={(e) => setArticleSku(e.target.value)}
+                        className="border border-gray-200 rounded-lg p-2.5 font-mono font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] flex-1 text-gray-700"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Code SKU (Automatique) :</label>
-                  <input 
-                    type="text" required placeholder="Ex: HK-SAV-01"
-                    value={articleSku} onChange={(e) => setArticleSku(e.target.value)}
-                    className="border rounded p-2 font-mono font-bold bg-gray-50 focus:outline-none"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px]">Catégorie Hôtelière :</label>
+                    <select 
+                      value={articleCategory} 
+                      onChange={(e) => setArticleCategory(e.target.value as any)}
+                      className="border border-gray-200 bg-white rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] font-semibold text-gray-800"
+                    >
+                      {Object.keys(categoriesMap).map(key => (
+                        <option key={key} value={key}>{categoriesMap[key]}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px]">Unité de Comptage :</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="Ex: Bouteille, Unité, Litre..."
+                      value={articleUnit} 
+                      onChange={(e) => setArticleUnit(e.target.value)}
+                      className="border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] font-bold text-gray-800"
+                    />
+                    {/* Quick unit helper chips */}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {['Unité', 'Bouteille', 'Litre', 'Kg', 'Carton', 'Paquet', 'Rouleau'].map(u => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => setArticleUnit(u)}
+                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold transition-all border ${
+                            articleUnit === u 
+                              ? 'bg-[#fe6e00] text-white border-[#fe6e00]' 
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border-transparent'
+                          }`}
+                        >
+                          {u}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* SECTION 2: VALUES, LIMITS & STOCKS */}
+              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3">
+                <span className="font-extrabold text-[#fe6e00] uppercase text-[9px] tracking-widest border-b pb-1 mb-1 block">
+                  2. Seuils, Prix et Logistique
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px] flex items-center gap-0.5">
+                      Seuil d'Alerte :
+                    </label>
+                    <input 
+                      type="number" 
+                      required 
+                      placeholder="Ex: 20"
+                      value={articleMinStock} 
+                      onChange={(e) => setArticleMinStock(e.target.value)}
+                      className="border border-gray-200 rounded-lg p-2.5 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] text-red-700"
+                    />
+                    <p className="text-[8px] text-gray-400 leading-tight">Stock sous lequel l'alerte rupture est déclenchée.</p>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px]">Prix Achat (FCFA) :</label>
+                    <input 
+                      type="number" 
+                      required 
+                      placeholder="Ex: 150"
+                      value={articlePrice} 
+                      onChange={(e) => setArticlePrice(e.target.value)}
+                      className="border border-gray-200 rounded-lg p-2.5 font-mono font-black focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] text-emerald-800"
+                    />
+                    <p className="text-[8px] text-gray-400 leading-tight">Coût unitaire d'achat HT pour valorisation.</p>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="font-bold text-gray-600 uppercase text-[9px]">Dépôt de stockage :</label>
+                    <select 
+                      value={articleEmplacement} 
+                      onChange={(e) => setArticleEmplacement(e.target.value)}
+                      className="border border-gray-200 bg-white rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] font-semibold text-gray-800"
+                    >
+                      {emplacements.map(emp => (
+                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-[8px] text-gray-400 leading-tight">Magasin physique hébergeant le lot par défaut.</p>
+                  </div>
+                </div>
+
+                {/* DECOUPLED INITIAL STOCK DEPARTURE INPUT - ONLY IN CREATION MODE */}
+                {!editingArticle && (
+                  <div className="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/50 mt-1 flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <label className="font-extrabold text-emerald-900 uppercase text-[9px] tracking-wide">
+                        Saisir un Stock de Départ initial :
+                      </label>
+                      <span className="text-[8px] text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.5 rounded-full">Automatique</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 mt-1">
+                      <input 
+                        type="number" 
+                        min="0"
+                        placeholder="Quantité de départ (Ex: 100)"
+                        value={articleInitialStock} 
+                        onChange={(e) => setArticleInitialStock(e.target.value)}
+                        className="border border-emerald-200 bg-white rounded-lg p-2.5 font-mono font-black text-xs text-emerald-800 w-full sm:w-32 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shrink-0"
+                      />
+                      <span className="text-[10px] text-gray-600 font-medium leading-normal">
+                        {articleUnit}(s) seront injectés dans le dépôt "{emplacements.find(e => e.id === articleEmplacement)?.name || 'sélectionné'}" comme mouvement d'initialisation.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 3: SUPPLIER & NOTES */}
+              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-3">
+                <span className="font-extrabold text-[#fe6e00] uppercase text-[9px] tracking-widest border-b pb-1 mb-1 block">
+                  3. Approvisionnement & Spécifications
+                </span>
+
                 <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Catégorie Hôtelière :</label>
+                  <label className="font-bold text-gray-600 uppercase text-[9px]">Fournisseur Attitré :</label>
                   <select 
-                    value={articleCategory} onChange={(e) => setArticleCategory(e.target.value as any)}
-                    className="border rounded p-2 focus:outline-none"
+                    value={articleSupplier} 
+                    onChange={(e) => setArticleSupplier(e.target.value)}
+                    className="border border-gray-200 bg-white rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] font-semibold text-gray-800"
                   >
-                    {Object.keys(categoriesMap).map(key => (
-                      <option key={key} value={key}>{categoriesMap[key]}</option>
+                    {suppliers.map(sup => (
+                      <option key={sup.id} value={sup.id}>{sup.name}</option>
                     ))}
                   </select>
                 </div>
+
                 <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Unité de Comptage :</label>
-                  <input 
-                    type="text" required placeholder="Ex: Bouteille, Unité, Litre, Rouleau"
-                    value={articleUnit} onChange={(e) => setArticleUnit(e.target.value)}
-                    className="border rounded p-2 focus:outline-none"
+                  <label className="font-bold text-gray-600 uppercase text-[9px]">Description & Spécifications libres :</label>
+                  <textarea 
+                    rows={2} 
+                    placeholder="Précisez la marque, taille, caractéristiques, ou consignes de réapprovisionnement..."
+                    value={articleDesc} 
+                    onChange={(e) => setArticleDesc(e.target.value)}
+                    className="border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#fe6e00]/20 focus:border-[#fe6e00] text-gray-700"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Seuil d'Alerte :</label>
-                  <input 
-                    type="number" required placeholder="Ex: 20"
-                    value={articleMinStock} onChange={(e) => setArticleMinStock(e.target.value)}
-                    className="border rounded p-2 font-mono"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Prix Achat (FCFA) :</label>
-                  <input 
-                    type="number" required placeholder="Ex: 150"
-                    value={articlePrice} onChange={(e) => setArticlePrice(e.target.value)}
-                    className="border rounded p-2 font-mono font-bold"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-gray-500 uppercase text-[9px]">Emplacement dépôt :</label>
-                  <select 
-                    value={articleEmplacement} onChange={(e) => setArticleEmplacement(e.target.value)}
-                    className="border rounded p-2"
-                  >
-                    {emplacements.map(emp => (
-                      <option key={emp.id} value={emp.id}>{emp.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="font-bold text-gray-500 uppercase text-[9px]">Fournisseur Attitré :</label>
-                <select 
-                  value={articleSupplier} onChange={(e) => setArticleSupplier(e.target.value)}
-                  className="border rounded p-2"
-                >
-                  {suppliers.map(sup => (
-                    <option key={sup.id} value={sup.id}>{sup.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="font-bold text-gray-500 uppercase text-[9px]">Description libre :</label>
-                <textarea 
-                  rows={2} placeholder="Précisez la marque, taille ou caractéristiques..."
-                  value={articleDesc} onChange={(e) => setArticleDesc(e.target.value)}
-                  className="border rounded p-2"
-                />
-              </div>
-
-              <div className="flex gap-2 justify-end border-t pt-4 mt-2">
+              {/* Actions Footer */}
+              <div className="flex gap-2 justify-end border-t border-gray-200 pt-4 mt-1">
                 <button 
-                  type="button" onClick={() => setShowArticleModal(false)}
-                  className="px-4 py-2 border rounded hover:bg-gray-50 font-bold"
+                  type="button" 
+                  onClick={() => setShowArticleModal(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 font-bold transition-all text-[#797067] cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-2 bg-[#fe6e00] hover:bg-[#e06100] text-white rounded font-bold"
+                  className="px-5 py-2 bg-[#fe6e00] hover:bg-[#e06100] text-white rounded-lg font-bold transition-all cursor-pointer shadow-sm shadow-[#fe6e00]/20"
                 >
-                  Sauvegarder l'Article
+                  {editingArticle ? 'Enregistrer les modifications' : 'Créer et Initialiser'}
                 </button>
               </div>
+
             </form>
           </div>
         </div>
@@ -1389,15 +1522,15 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
       {/* 2. MODAL MOUVEMENT DE STOCK */}
       {showMovementModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-lg w-full overflow-hidden animate-scale-up">
-            <div className="bg-black text-white p-4 flex justify-between items-center">
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-up">
+            <div className="bg-black text-white p-4 flex justify-between items-center shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-widest text-[#fe6e00]">
                 Enregistrer un Mouvement de Stock
               </span>
               <button onClick={() => setShowMovementModal(false)} className="text-white hover:text-[#fe6e00] font-bold text-base cursor-pointer">×</button>
             </div>
 
-            <form onSubmit={handleSaveMovement} className="p-5 flex flex-col gap-4 text-xs">
+            <form onSubmit={handleSaveMovement} className="p-5 flex flex-col gap-4 text-xs overflow-y-auto flex-1 pr-2">
               
               <div className="flex flex-col gap-1">
                 <label className="font-bold text-gray-500 uppercase text-[9px]">Sélectionner l'Article d'Inventaire :</label>
@@ -1511,15 +1644,15 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
       {/* 3. MODAL EMPLACEMENT */}
       {showEmpModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-sm w-full overflow-hidden animate-scale-up">
-            <div className="bg-black text-white p-4 flex justify-between items-center">
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-sm w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-up">
+            <div className="bg-black text-white p-4 flex justify-between items-center shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-widest text-[#fe6e00]">
                 Créer un Nouvel Emplacement
               </span>
               <button onClick={() => setShowEmpModal(false)} className="text-white hover:text-[#fe6e00] font-bold text-base cursor-pointer">×</button>
             </div>
 
-            <form onSubmit={handleSaveEmplacement} className="p-5 flex flex-col gap-4 text-xs">
+            <form onSubmit={handleSaveEmplacement} className="p-5 flex flex-col gap-4 text-xs overflow-y-auto flex-1 pr-2">
               <div className="flex flex-col gap-1">
                 <label className="font-bold text-gray-500 uppercase text-[9px]">Nom du Dépôt / Magasin :</label>
                 <input 
@@ -1559,15 +1692,15 @@ export const InventoryScreen: React.FC<InventoryScreenProps> = ({ triggerToast: 
       {/* 4. MODAL SUPPLIER */}
       {showSupModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden animate-scale-up">
-            <div className="bg-black text-white p-4 flex justify-between items-center">
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-up">
+            <div className="bg-black text-white p-4 flex justify-between items-center shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-widest text-[#fe6e00]">
                 Enregistrer un Nouveau Fournisseur
               </span>
               <button onClick={() => setShowSupModal(false)} className="text-white hover:text-[#fe6e00] font-bold text-base cursor-pointer">×</button>
             </div>
 
-            <form onSubmit={handleSaveSupplier} className="p-5 flex flex-col gap-4 text-xs">
+            <form onSubmit={handleSaveSupplier} className="p-5 flex flex-col gap-4 text-xs overflow-y-auto flex-1 pr-2">
               <div className="flex flex-col gap-1">
                 <label className="font-bold text-gray-500 uppercase text-[9px]">Nom de l'Entreprise :</label>
                 <input 

@@ -9,6 +9,7 @@ interface ReservationsScreenProps {
   setRooms: React.Dispatch<React.SetStateAction<Room[]>>;
   triggerToast: (msg: string) => void;
   hotelConfig?: any;
+  currentUserRole?: string;
 }
 
 export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
@@ -17,7 +18,8 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
   setReservations,
   setRooms,
   triggerToast,
-  hotelConfig
+  hotelConfig,
+  currentUserRole
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Tous' | 'Confirmé' | 'En Cours' | 'Terminé'>('Tous');
@@ -81,7 +83,9 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
     const basePrice = room
       ? (hotelConfig?.prices?.[room.type] ?? room.price)
       : 35000;
-    const totalBill = basePrice * diffDays;
+    // Tarification dégressive dynamique : -15% automatique au-delà de 14 jours
+    const finalPricePerNight = diffDays > 14 ? Math.round(basePrice * 0.85) : basePrice;
+    const totalBill = finalPricePerNight * diffDays;
 
     setReservations(prev => prev.map(res => {
       if (res.id === editingRes.id) {
@@ -122,6 +126,10 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
   });
 
   const handleDelete = (id: string, guestName: string) => {
+    if (currentUserRole !== 'admin' && currentUserRole !== 'gerant') {
+      triggerToast(`Accès refusé : Seul un Administrateur ou un Gérant peut supprimer une réservation.`);
+      return;
+    }
     if (confirm(`Voulez-vous vraiment supprimer la réservation de ${guestName} ?`)) {
       setReservations(prev => prev.filter(res => res.id !== id));
       triggerToast(`Réservation ${id} supprimée.`);
@@ -154,7 +162,9 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
     const basePrice = hotelConfig?.prices?.[room.type] ?? room.price;
-    const totalBill = basePrice * diffDays;
+    // Tarification dégressive dynamique : -15% automatique au-delà de 14 jours
+    const finalPricePerNight = diffDays > 14 ? Math.round(basePrice * 0.85) : basePrice;
+    const totalBill = finalPricePerNight * diffDays;
 
     const channelTypeMap: Record<string, string> = {
       'Direct': 'Direct',
@@ -630,8 +640,8 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
       {/* EDIT MODAL OVERLAY */}
       {editingRes && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 text-xs animate-fade-in">
-          <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-xl max-w-lg w-full p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between border-b border-[#f3f4f6] pb-3 text-[#423d38]">
+          <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden p-6 gap-4 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-[#f3f4f6] pb-3 text-[#423d38] shrink-0">
               <div className="flex items-center gap-2 font-bold text-sm">
                 <Edit className="w-5 h-5 text-[#fe6e00]" />
                 <h3>Modifier la Réservation : {editingRes.id}</h3>
@@ -644,7 +654,7 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveEditSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleSaveEditSubmit} className="flex flex-col gap-4 overflow-y-auto flex-1 pr-1">
               
               {/* Section: Client */}
               <div className="flex flex-col gap-2">

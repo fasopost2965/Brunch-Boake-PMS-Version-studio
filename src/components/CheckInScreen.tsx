@@ -11,7 +11,14 @@ import {
   Search, 
   FileImage, 
   Eraser, 
-  Languages
+  Languages,
+  Share2,
+  FileText,
+  Printer,
+  ExternalLink,
+  Copy,
+  Check,
+  X
 } from 'lucide-react';
 
 interface CheckInScreenProps {
@@ -92,6 +99,12 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [signatureData, setSignatureData] = useState('');
+
+  // Web Check-In Portal & Police Sheet States
+  const [showPoliceModal, setShowPoliceModal] = useState(false);
+  const [preCheckInLink, setPreCheckInLink] = useState('');
+  const [isPreLinkCopied, setIsPreLinkCopied] = useState(false);
+  const [isPortalProcessing, setIsPortalProcessing] = useState(false);
 
   // Signature canvas state
   const [isDrawing, setIsDrawing] = useState(false);
@@ -562,8 +575,8 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
         <div className="lg:col-span-2 flex flex-col gap-6">
           
           {/* BLOCK A: IDENTITÉ DU CLIENT */}
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2 text-[#423d38] font-bold">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#f3f4f6]/80 pb-2 text-[#423d38] font-bold">
               <span className="w-5 h-5 rounded-full bg-[#fe6e00]/10 text-[#fe6e00] flex items-center justify-center font-extrabold text-[11px]">A</span>
               <h3 className="text-sm">Identité du Client</h3>
             </div>
@@ -706,8 +719,8 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
           </div>
 
           {/* BLOCK B: ADRESSE ET CONTACT */}
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2 text-[#423d38] font-bold">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#f3f4f6]/80 pb-2 text-[#423d38] font-bold">
               <span className="w-5 h-5 rounded-full bg-[#fe6e00]/10 text-[#fe6e00] flex items-center justify-center font-extrabold text-[11px]">B</span>
               <h3 className="text-sm">Adresse & Contact Local</h3>
             </div>
@@ -791,8 +804,8 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
           </div>
 
           {/* BLOCK C: DONNÉES DU SÉJOUR */}
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2 text-[#423d38] font-bold">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#f3f4f6]/80 pb-2 text-[#423d38] font-bold">
               <span className="w-5 h-5 rounded-full bg-[#fe6e00]/10 text-[#fe6e00] flex items-center justify-center font-extrabold text-[11px]">C</span>
               <h3 className="text-sm">Données du Séjour</h3>
             </div>
@@ -1005,9 +1018,150 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
         {/* Right 1 Column: Block D & Final Summary */}
         <div className="flex flex-col gap-6">
           
+          {/* ================= PORTAIL WEB CHECK-IN & CONFORMITÉ POLICE ================= */}
+          <div className="bg-gradient-to-br from-[#fe6e00]/10 to-amber-50 p-5 rounded-xl border border-[#fe6e00]/25 shadow-sm flex flex-col gap-4">
+            <div className="border-b border-[#fe6e00]/20 pb-2">
+              <h3 className="font-extrabold text-[#fe6e00] text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <Share2 className="w-4 h-4" /> Pré-enregistrement & Portail Web
+              </h3>
+              <p className="text-[10px] text-[#797067] mt-0.5">Collecter les informations de police et la signature du client à distance.</p>
+            </div>
+
+            {isPortalProcessing ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
+                <div className="w-8 h-8 rounded-full border-4 border-[#fe6e00] border-t-transparent animate-spin"></div>
+                <span className="font-bold text-[#423d38] text-[10px]">Importation des données de police sécurisées...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const mockLink = `https://brunch-bouake.ci/checkin/web-chkin-${Math.floor(1000 + Math.random() * 9000)}`;
+                      setPreCheckInLink(mockLink);
+                      triggerToast("Lien de pré-enregistrement sécurisé généré !");
+                    }}
+                    className="flex-1 bg-white hover:bg-gray-50 text-[#fe6e00] border border-[#fe6e00] font-black py-2 px-3 rounded-lg text-[10px] uppercase tracking-wider cursor-pointer transition-colors text-center"
+                  >
+                    Générer le lien client
+                  </button>
+                  
+                  {guestName && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPoliceModal(true)}
+                      className="bg-[#016630] hover:bg-[#025227] text-white font-black py-2 px-3 rounded-lg text-[10px] uppercase tracking-wider cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <FileText className="w-3.5 h-3.5" /> Fiche Police
+                    </button>
+                  )}
+                </div>
+
+                {preCheckInLink && (
+                  <div className="bg-white border border-[#e3e0dd] p-3 rounded-lg flex flex-col gap-2.5 animate-scale-up">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[9px] text-[#797067] select-all truncate flex-1 bg-gray-50 p-1.5 rounded border border-gray-100">{preCheckInLink}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(preCheckInLink);
+                          setIsPreLinkCopied(true);
+                          triggerToast("Lien copié dans le presse-papier !");
+                          setTimeout(() => setIsPreLinkCopied(false), 2000);
+                        }}
+                        className="text-[#797067] hover:text-[#fe6e00] p-1.5 hover:bg-gray-50 rounded-md border border-gray-200"
+                        title="Copier le lien"
+                      >
+                        {isPreLinkCopied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => triggerToast(`Lien envoyé par WhatsApp à ${guestPhone || 'votre client'}`)}
+                        className="flex-1 bg-[#25d366] hover:bg-[#20ba5a] text-white font-bold py-1.5 px-2 rounded text-[9px] uppercase transition-colors text-center cursor-pointer"
+                      >
+                        WhatsApp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => triggerToast(`Lien envoyé par SMS à ${guestPhone || 'votre client'}`)}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-2 rounded text-[9px] uppercase transition-colors text-center cursor-pointer"
+                      >
+                        SMS
+                      </button>
+                    </div>
+
+                    <div className="border-t border-dashed border-[#e3e0dd] pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPortalProcessing(true);
+                          setTimeout(() => {
+                            setIsPortalProcessing(false);
+                            setGuestName("Amadou Coulibaly");
+                            setGender("M");
+                            setBirthDate("1988-10-15");
+                            setNationality("Ivoirienne");
+                            setIdType("CNI");
+                            setIdNumber("CI-008392182");
+                            setGuestPhone("+225 07 45 67 89 01");
+                            setGuestEmail("amadou.coulibaly@gmail.com");
+                            setAddress("Quartier Zone 4");
+                            setCity("Abidjan");
+                            setCountry("Côte d'Ivoire");
+                            setEmergencyContact("Mariam Coulibaly (Épouse) - +225 05 11 22 33");
+                            setAgreedToTerms(true);
+                            
+                            // Simulate ID scan capture
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 400;
+                            canvas.height = 250;
+                            const ctx = canvas.getContext('2d');
+                            if (ctx) {
+                              ctx.fillStyle = '#f3f4f6';
+                              ctx.fillRect(0, 0, 400, 250);
+                              ctx.strokeStyle = '#e3e0dd';
+                              ctx.lineWidth = 6;
+                              ctx.strokeRect(3, 3, 394, 244);
+                              ctx.fillStyle = '#016630';
+                              ctx.fillRect(6, 6, 388, 40);
+                              ctx.fillStyle = '#ffffff';
+                              ctx.font = 'bold 12px sans-serif';
+                              ctx.fillText(`REPUBLIQUE DE COTE D'IVOIRE • CARTE D'IDENTITE`, 20, 30);
+                              ctx.fillStyle = '#edebe9';
+                              ctx.fillRect(25, 65, 100, 120);
+                              ctx.fillStyle = '#423d38';
+                              ctx.font = 'bold 11px sans-serif';
+                              ctx.fillText("Nom: COULIBALY AMADOU", 140, 80);
+                              ctx.fillText("Né le: 15/10/1988 à Bouaké", 140, 100);
+                              ctx.fillText("Nationalité: Ivoirienne", 140, 120);
+                              ctx.fillText("Numéro: CI008392182", 140, 140);
+                              setDocScanUrl(canvas.toDataURL());
+                            }
+                            
+                            // Create signature representation
+                            setSignatureData("SIMULATED_SIGNATURE");
+                            
+                            triggerToast("✅ Données de police importées avec succès du portail mobile !");
+                          }, 1500);
+                        }}
+                        className="w-full bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-extrabold py-2 px-3 rounded-lg text-[10px] uppercase tracking-wider transition-colors text-center flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Simuler la saisie mobile client
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* BLOCK D: VÉRIFICATION ET VALIDATION */}
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2 text-[#423d38] font-bold">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-[#f3f4f6]/80 pb-2 text-[#423d38] font-bold">
               <span className="w-5 h-5 rounded-full bg-[#fe6e00]/10 text-[#fe6e00] flex items-center justify-center font-extrabold text-[11px]">D</span>
               <h3 className="text-sm">Vérification & Validation</h3>
             </div>
@@ -1125,8 +1279,8 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
           </div>
 
           {/* FINANCIAL SUMMARY & ACTIONS */}
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4 text-xs">
-            <h3 className="font-bold text-[#423d38] text-sm border-b border-[#e3e0dd] pb-2">Récapitulatif Financier</h3>
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4 text-xs">
+            <h3 className="font-bold text-[#423d38] text-sm border-b border-[#e3e0dd]/80 pb-2">Récapitulatif Financier</h3>
             
             {roomNumber ? (
               <div className="flex flex-col gap-3">
@@ -1203,6 +1357,242 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
           </div>
         </div>
       </form>
+
+      {/* ================= MODAL: FICHE INDIVIDUELLE DE POLICE (CONFORMITÉ CÔTE D'IVOIRE) ================= */}
+      {showPoliceModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-[#e3e0dd] max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-up text-xs text-slate-800">
+            {/* Header / Actions toolbar */}
+            <div className="bg-slate-100 px-5 py-3 border-b border-[#e3e0dd] flex justify-between items-center no-print">
+              <span className="font-bold text-[#fe6e00] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <FileText className="w-4.5 h-4.5" /> Fiche de Police Réglementaire (Conformité DGSN)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    window.print();
+                    triggerToast("Impression de la Fiche de Police lancée.");
+                  }}
+                  className="bg-[#016630] hover:bg-[#025227] text-white px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5" /> Imprimer
+                </button>
+                <button
+                  onClick={() => setShowPoliceModal(false)}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 p-1.5 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Document Sheet Content */}
+            <div className="p-8 bg-white flex-1 overflow-y-auto print-section font-serif leading-relaxed" id="printable-police-sheet">
+              {/* Official State Headings */}
+              <div className="grid grid-cols-2 gap-4 border-b-2 border-slate-900 pb-4 mb-4">
+                <div className="text-left flex flex-col gap-0.5">
+                  <span className="font-black text-[10px] tracking-wide uppercase">RÉPUBLIQUE DE CÔTE D'IVOIRE</span>
+                  <span className="text-[8px] italic tracking-widest font-bold">Union - Discipline - Travail</span>
+                  <div className="h-0.5 w-12 bg-slate-400 my-1"></div>
+                  <span className="text-[9px] font-bold uppercase">MINISTÈRE DE L'INTÉRIEUR</span>
+                  <span className="text-[9px] font-bold uppercase">ET DE LA SÉCURITÉ</span>
+                  <span className="text-[8px] text-slate-600 font-semibold uppercase">Direction Générale de la Sûreté Nationale</span>
+                </div>
+                <div className="text-right flex flex-col gap-0.5 justify-start">
+                  <span className="font-bold text-[9px] uppercase">DISTRICT AUTONOME DE VALLÉE DU BANDAMA</span>
+                  <span className="font-bold text-[9px] uppercase">PRÉFECTURE DE BOUAKÉ</span>
+                  <span className="font-bold text-[9px] uppercase">COMMISSARIAT DE POLICE DU 1ER ARRONDISSEMENT</span>
+                  <span className="text-[8.5px] font-semibold text-slate-600 italic">Hébergement Touristique Agréé</span>
+                </div>
+              </div>
+
+              {/* Sheet Title */}
+              <div className="text-center my-6 flex flex-col gap-1">
+                <h1 className="text-sm font-black uppercase tracking-widest border-2 border-slate-900 py-1.5 px-4 bg-slate-50 inline-block mx-auto">
+                  FICHE INDIVIDUELLE DE POLICE
+                </h1>
+                <span className="text-[8px] font-mono tracking-widest text-slate-500 uppercase">INDIVIDUAL POLICE RECORD • TOURISM LAW SECTION</span>
+              </div>
+
+              {/* Main Information Table Form */}
+              <div className="border border-slate-800 text-[11px] grid grid-cols-1 divide-y divide-slate-800">
+                {/* Row 1 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-slate-800">
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Nom de famille / Surname :</span>
+                    <span className="font-extrabold text-sm uppercase text-slate-900">{guestName.split(' ')[0] || 'KOUAMÉ'}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Prénoms / Given Names :</span>
+                    <span className="font-bold text-xs text-slate-900">{guestName.split(' ').slice(1).join(' ') || 'YAO KAN'}</span>
+                  </div>
+                </div>
+
+                {/* Row 2 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-slate-800">
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Date de Naissance / Birth Date :</span>
+                    <span className="font-bold text-slate-900">{birthDate}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Sexe / Sex :</span>
+                    <span className="font-bold text-slate-900">{gender === 'M' ? 'Masculin' : gender === 'F' ? 'Féminin' : 'Autre'}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Nationalité / Nationality :</span>
+                    <span className="font-bold text-slate-900">{nationality}</span>
+                  </div>
+                </div>
+
+                {/* Row 3 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-slate-800">
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Pièce d'Identité / ID Type & No :</span>
+                    <span className="font-mono font-bold text-slate-900">{idType} • N° {idNumber || 'CI-0023849182'}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Téléphone & E-mail / Contact :</span>
+                    <span className="font-semibold text-slate-900">{guestPhone} | {guestEmail || 'client@mail.com'}</span>
+                  </div>
+                </div>
+
+                {/* Row 4 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-slate-800">
+                  <div className="p-2 flex flex-col col-span-2">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Adresse Domicile / Permanent Address :</span>
+                    <span className="font-semibold text-slate-900">{address || 'Quartier Commerce'}, {city}, {country}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Langue / Language :</span>
+                    <span className="font-bold text-slate-900">{language}</span>
+                  </div>
+                </div>
+
+                {/* Row 5 */}
+                <div className="grid grid-cols-1 md:grid-cols-4 divide-x divide-slate-800">
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Chambre / Room :</span>
+                    <span className="font-black text-sm text-slate-900">CH {roomNumber || 'NON ATTRIBUÉE'}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Date d'Arrivée / Arrival :</span>
+                    <span className="font-bold text-slate-900">{checkInDate}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Date de Départ / Departure :</span>
+                    <span className="font-bold text-slate-900">{checkOutDate}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Nombre de Nuits / Nights :</span>
+                    <span className="font-bold text-[#fe6e00]">{nights} nuit(s)</span>
+                  </div>
+                </div>
+
+                {/* Row 6 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-x divide-slate-800">
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Pays d'Origine / Coming From :</span>
+                    <span className="font-semibold text-slate-900">{originCountry || "Côte d'Ivoire"}</span>
+                  </div>
+                  <div className="p-2 flex flex-col">
+                    <span className="font-bold text-[9px] text-slate-500 uppercase">Destination Suivante / Next Destination :</span>
+                    <span className="font-semibold text-slate-900">Abidjan / Aéroport Félix Houphouët-Boigny</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Legal Notice */}
+              <p className="text-[8px] text-slate-600 font-sans italic mt-4 mb-8 leading-normal">
+                Déclaration obligatoire prescrite par les règlements de police de la Sûreté Nationale de Côte d'Ivoire. 
+                L'exploitant d'établissement hôtelier est tenu de faire signer au voyageur une fiche individuelle de police dès son arrivée. 
+                Ces fiches sont conservées à la disposition des officiers de police et des inspecteurs sanitaires.
+              </p>
+
+              {/* Signatures & Stamp block */}
+              <div className="grid grid-cols-2 gap-8 items-stretch pt-6 border-t border-dashed border-slate-300">
+                {/* Guest Signature */}
+                <div className="flex flex-col justify-between border border-slate-200 rounded p-4 h-36 bg-slate-50 relative">
+                  <span className="font-bold text-[9px] uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1 block">
+                    Signature du Voyageur / Guest Signature
+                  </span>
+                  
+                  <div className="flex-1 flex items-center justify-center py-2">
+                    {signatureData ? (
+                      signatureData === "SIMULATED_SIGNATURE" ? (
+                        <span className="font-serif italic font-extrabold text-slate-800 text-lg border-b border-slate-400 select-none tracking-widest px-4 py-1">
+                          {guestName}
+                        </span>
+                      ) : (
+                        <img src={signatureData} alt="Client Signature" className="max-h-20 object-contain" referrerPolicy="no-referrer" />
+                      )
+                    ) : (
+                      <span className="text-[10px] text-slate-400 italic">Signature manquante</span>
+                    )}
+                  </div>
+                  
+                  <span className="text-[8px] font-mono text-center text-slate-400 block mt-1">Lu et Approuvé • {todayStr}</span>
+                </div>
+
+                {/* Hotel Stamp */}
+                <div className="flex flex-col justify-between border border-slate-200 rounded p-4 h-36 bg-slate-50 relative overflow-hidden">
+                  <span className="font-bold text-[9px] uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1 block">
+                    Visa de l'Établissement / Establishment Visa
+                  </span>
+
+                  {/* High Quality SVG Blueprint Style Stamp */}
+                  <div className="absolute right-4 bottom-2 opacity-85 select-none pointer-events-none transform rotate-12">
+                    <svg width="105" height="105" viewBox="0 0 100 100" className="text-blue-700/85">
+                      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="160 0" />
+                      <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+                      <path id="stampPath" d="M 18,50 A 32,32 0 1,1 82,50" fill="none" stroke="none" />
+                      <text className="font-sans font-black uppercase text-[6.5px] tracking-widest fill-current">
+                        <textPath href="#stampPath" startOffset="50%" textAnchor="middle">
+                          BRUNCH BOUAKÉ PMS
+                        </textPath>
+                      </text>
+                      <path id="stampPathSub" d="M 82,50 A 32,32 0 1,1 18,50" fill="none" stroke="none" />
+                      <text className="font-sans font-bold uppercase text-[5.5px] tracking-widest fill-current">
+                        <textPath href="#stampPathSub" startOffset="50%" textAnchor="middle">
+                          * RECEPTION - SERVICE *
+                        </textPath>
+                      </text>
+                      <g className="text-center font-serif font-black text-[9px] fill-current">
+                        <text x="50" y="46" textAnchor="middle">ENTRÉE</text>
+                        <text x="50" y="56" textAnchor="middle" className="text-[7px]" fill="#fe6e00">{roomNumber ? `CH ${roomNumber}` : 'AGRÉÉ'}</text>
+                        <text x="50" y="66" textAnchor="middle" className="text-[6px]">{todayStr}</text>
+                      </g>
+                    </svg>
+                  </div>
+                  
+                  <div className="flex-1"></div>
+                  <span className="text-[8px] text-slate-400 font-mono block text-center mt-1">RÉSIDENCE BRUNCH BOUAKÉ</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer buttons */}
+            <div className="bg-slate-50 border-t border-[#e3e0dd] px-6 py-4 flex justify-end gap-3 no-print">
+              <button
+                type="button"
+                onClick={() => setShowPoliceModal(false)}
+                className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-4 py-2 rounded-lg cursor-pointer transition-colors"
+              >
+                Fermer
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.print();
+                  triggerToast("Fiche envoyée vers l'imprimante thermique / locale.");
+                }}
+                className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-5 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-2"
+              >
+                <Printer className="w-4 h-4" /> Imprimer la Fiche
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

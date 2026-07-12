@@ -45,7 +45,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
       </div>
 
       {/* SEARCH AND FILTERS PANEL */}
-      <div className="bg-white p-4 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4 text-xs">
+      <div className="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4 text-xs">
         {/* Real-time search field */}
         <div className="relative w-full">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#797067]">
@@ -122,7 +122,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
             return (
               <div 
                 key={room.id} 
-                className="bg-white border border-[#e3e0dd] rounded-xl p-5 shadow-sm flex flex-col gap-4 hover:shadow-md transition-all"
+                className="bg-white/80 backdrop-blur-md border border-[#e3e0dd]/80 rounded-xl p-5 shadow-sm flex flex-col gap-4 hover:shadow-md hover:scale-[1.01] transition-all"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col">
@@ -147,7 +147,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
                     {room.status !== 'Libre' && (
                       <button
                         onClick={() => handleUpdateStatus(room.id, 'Libre')}
-                        className="bg-[#dcfce7] hover:bg-[#dcfce7]/80 text-[#016630] border border-[#016630]/20 py-1.5 rounded-md transition-colors cursor-pointer text-center"
+                        className="bg-[#dcfce7] hover:bg-[#dcfce7]/80 text-[#016630] border border-[#016630]/20 py-1.5 rounded-xl transition-colors cursor-pointer text-center"
                       >
                         Propre (Libre)
                       </button>
@@ -155,7 +155,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
                     {room.status !== 'Sale' && (
                       <button
                         onClick={() => handleUpdateStatus(room.id, 'Sale')}
-                        className="bg-[#fef9c2] hover:bg-[#fef9c2]/80 text-[#874b00] border border-[#874b00]/20 py-1.5 rounded-md transition-colors cursor-pointer text-center"
+                        className="bg-[#fef9c2] hover:bg-[#fef9c2]/80 text-[#874b00] border border-[#874b00]/20 py-1.5 rounded-xl transition-colors cursor-pointer text-center"
                       >
                         Mettre Sale
                       </button>
@@ -163,7 +163,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
                     {room.status !== 'Maintenance' && (
                       <button
                         onClick={() => handleUpdateStatus(room.id, 'Maintenance')}
-                        className="bg-[#f3e8ff] hover:bg-[#f3e8ff]/80 text-[#8200da] border border-[#8200da]/20 py-1.5 rounded-md transition-colors cursor-pointer text-center flex items-center justify-center gap-1 col-span-2"
+                        className="bg-[#f3e8ff] hover:bg-[#f3e8ff]/80 text-[#8200da] border border-[#8200da]/20 py-1.5 rounded-xl transition-colors cursor-pointer text-center flex items-center justify-center gap-1 col-span-2"
                       >
                         <Wrench className="w-2.5 h-2.5" /> Maintenance
                       </button>
@@ -171,7 +171,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
                     {room.status === 'Maintenance' && (
                       <button
                         onClick={() => handleUpdateStatus(room.id, 'Libre')}
-                        className="bg-[#dcfce7] hover:bg-[#dcfce7]/80 text-[#016630] border border-[#016630]/20 py-1.5 rounded-md transition-colors cursor-pointer text-center col-span-2"
+                        className="bg-[#dcfce7] hover:bg-[#dcfce7]/80 text-[#016630] border border-[#016630]/20 py-1.5 rounded-xl transition-colors cursor-pointer text-center col-span-2"
                       >
                         Libérer la chambre
                       </button>
@@ -183,7 +183,7 @@ export const RoomsScreen: React.FC<RoomsScreenProps> = ({
           })}
         </div>
       ) : (
-        <div className="bg-white border border-[#e3e0dd] p-12 text-center rounded-xl flex flex-col items-center justify-center gap-3 shadow-xs">
+        <div className="bg-white/80 backdrop-blur-md border border-[#e3e0dd]/80 p-12 text-center rounded-xl flex flex-col items-center justify-center gap-3 shadow-xs">
           <Search className="w-10 h-10 text-[#797067]" />
           <span className="font-bold text-[#423d38] text-sm">Aucune chambre trouvée</span>
           <p className="text-[11px] text-[#797067] max-w-xs leading-relaxed">

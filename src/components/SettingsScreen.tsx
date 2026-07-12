@@ -24,7 +24,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
-import { Reservation, Room } from '../types';
+import { Reservation, Room, User, UserRole } from '../types';
 import { BrunchLogo } from './BrunchLogo';
 
 interface SettingsScreenProps {
@@ -59,6 +59,9 @@ interface SettingsScreenProps {
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   rooms: Room[];
   setRooms: React.Dispatch<React.SetStateAction<Room[]>>;
+  users: User[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  currentUserRole?: string;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -68,7 +71,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   reservations,
   setReservations,
   rooms,
-  setRooms
+  setRooms,
+  users,
+  setUsers,
+  currentUserRole
 }) => {
   // Navigation State - exactly the 14 sections requested
   const [activeTab, setActiveTab] = useState<string>('identite');
@@ -246,6 +252,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [managerPassword, setManagerPassword] = useState(hotelConfig.security?.managerPassword || 'BOUAKE2026');
   const [operatorRole] = useState(hotelConfig.security?.operatorRole || 'Super Administrateur');
   const [ipRestriction, setIpRestriction] = useState(hotelConfig.security?.ipRestriction || false);
+
+  // States for creating a new user
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserUsername, setNewUserUsername] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('receptionist');
+  const [newUserPassword, setNewUserPassword] = useState('');
   const [simProvider, setSimProvider] = useState<string>(hotelConfig.otaSandbox?.provider || 'Channex');
   const [simApiKey, setSimApiKey] = useState<string>(hotelConfig.otaSandbox?.apiKey || 'cx_sandbox_sk_8f7b2e10a99c4d2891f7a01c8b7473');
   const [simChannel] = useState<string>('Booking.com');
@@ -483,6 +495,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const handleResetSystem = () => {
+    if (currentUserRole !== 'admin') {
+      triggerToast('Accès refusé : Seul l’Administrateur principal peut réinitialiser le système.');
+      return;
+    }
     if (confirm('Attention : cela supprimera tous les clients, réservations, paiements et configurations enregistrés pour rétablir les données de démonstration d’usine. Continuer ?')) {
       localStorage.clear();
       triggerToast('Toutes les données locales ont été vidées. Rechargement...');
@@ -2110,6 +2126,195 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <input type="checkbox" checked={ipRestriction} onChange={(e) => setIpRestriction(e.target.checked)} className="rounded border-gray-300 text-[#fe6e00]" />
                 <span>Restreindre l'accès à la plage d'IP de l'établissement (Bouaké Intranet)</span>
               </label>
+
+              {/* ACCÈS ET UTILISATEURS DU PMS */}
+              <div className="border-t border-gray-200 pt-4 flex flex-col gap-4">
+                <span className="font-extrabold text-[11px] uppercase text-[#fe6e00] tracking-widest">Habilitations & Comptes Utilisateurs (RBAC)</span>
+                
+                {/* Users List Table */}
+                <div className="bg-white border border-[#e3e0dd] rounded-xl overflow-hidden shadow-xs">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-gray-500">
+                      <thead className="text-[10px] uppercase bg-gray-50 text-gray-700 font-extrabold border-b">
+                        <tr>
+                          <th className="px-4 py-3">Collaborateur</th>
+                          <th className="px-4 py-3">Identifiant</th>
+                          <th className="px-4 py-3">Rôle Associé</th>
+                          <th className="px-4 py-3">Créé le</th>
+                          <th className="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {users.map((user) => (
+                          <tr key={user.id} className="hover:bg-gray-50/80 transition-colors">
+                            <td className="px-4 py-3 font-semibold text-gray-900">{user.name}</td>
+                            <td className="px-4 py-3 font-mono text-[11px] text-gray-600">@{user.username}</td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={user.role}
+                                onChange={(e) => {
+                                  const updatedRole = e.target.value as UserRole;
+                                  setUsers(users.map(u => u.id === user.id ? { ...u, role: updatedRole } : u));
+                                  triggerToast(`Rôle de @${user.username} mis à jour : ${updatedRole}`);
+                                }}
+                                disabled={user.username === 'admin'}
+                                className="bg-gray-50 border border-gray-300 text-gray-800 text-xs rounded-lg p-1 font-bold focus:outline-none focus:ring-1 focus:ring-[#fe6e00]"
+                              >
+                                <option value="admin">Administrateur</option>
+                                <option value="gerant">Gérant (Manager)</option>
+                                <option value="receptionist">Réceptionniste</option>
+                                <option value="accountant">Comptable</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 text-[10px] font-mono">{user.createdAt}</td>
+                            <td className="px-4 py-3 text-right">
+                              {user.username === 'admin' ? (
+                                <span className="text-[9px] text-gray-400 italic">Compte Système</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (currentUserRole !== 'admin' && currentUserRole !== 'gerant') {
+                                      triggerToast(`Accès refusé : Seul un Administrateur ou un Gérant peut supprimer ou désactiver des utilisateurs.`);
+                                      return;
+                                    }
+                                    if (confirm(`Voulez-vous vraiment supprimer le compte de ${user.name} ?`)) {
+                                      setUsers(users.filter(u => u.id !== user.id));
+                                      triggerToast(`Compte de ${user.name} supprimé.`);
+                                    }
+                                  }}
+                                  className={`font-bold text-xs ${
+                                    currentUserRole === 'admin' || currentUserRole === 'gerant'
+                                      ? 'text-red-600 hover:text-red-900 cursor-pointer'
+                                      : 'text-gray-400 cursor-not-allowed'
+                                  }`}
+                                >
+                                  Désactiver
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Add User Form */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (currentUserRole !== 'admin' && currentUserRole !== 'gerant') {
+                      triggerToast("Accès refusé : Seul un Administrateur ou un Gérant peut créer un nouvel opérateur.");
+                      return;
+                    }
+                    if (!newUserName.trim() || !newUserUsername.trim() || !newUserPassword.trim()) {
+                      triggerToast("Veuillez remplir tous les champs !");
+                      return;
+                    }
+                    if (users.some(u => u.username.toLowerCase() === newUserUsername.toLowerCase())) {
+                      triggerToast("Cet identifiant est déjà utilisé !");
+                      return;
+                    }
+                    const newUser: User = {
+                      id: `USR-0${users.length + 1}`,
+                      name: newUserName,
+                      username: newUserUsername.trim().toLowerCase(),
+                      role: newUserRole,
+                      password: newUserPassword,
+                      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                    };
+                    setUsers([...users, newUser]);
+                    setNewUserName('');
+                    setNewUserUsername('');
+                    setNewUserPassword('');
+                    triggerToast(`Utilisateur créé : ${newUserName} (${newUserRole})`);
+                  }}
+                  className={`bg-gray-50 p-4 border rounded-xl flex flex-col gap-3 ${
+                    currentUserRole !== 'admin' && currentUserRole !== 'gerant' ? 'opacity-60 pointer-events-none' : ''
+                  }`}
+                >
+                  <span className="font-bold text-[#423d38] uppercase tracking-wider text-[9px]">Créer un nouvel opérateur d'établissement :</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] text-gray-500 font-bold">Nom Complet :</label>
+                      <input
+                        type="text" required placeholder="Ex: Kouamé Yao"
+                        value={newUserName} onChange={(e) => setNewUserName(e.target.value)}
+                        className="bg-white border rounded p-1.5 focus:outline-none text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] text-gray-500 font-bold">Identifiant (login) :</label>
+                      <input
+                        type="text" required placeholder="Ex: yao"
+                        value={newUserUsername} onChange={(e) => setNewUserUsername(e.target.value)}
+                        className="bg-white border rounded p-1.5 focus:outline-none text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] text-gray-500 font-bold">Mot de passe :</label>
+                      <input
+                        type="password" required placeholder="••••••••"
+                        value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)}
+                        className="bg-white border rounded p-1.5 focus:outline-none text-xs"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] text-gray-500 font-bold">Rôle initial :</label>
+                      <select
+                        value={newUserRole} onChange={(e) => setNewUserRole(e.target.value as UserRole)}
+                        className="bg-white border rounded p-1.5 focus:outline-none text-xs font-bold text-gray-800"
+                      >
+                        <option value="admin">Administrateur (Super Admin)</option>
+                        <option value="gerant">Gérant (Manager)</option>
+                        <option value="receptionist">Réceptionniste (Accueil/PMS)</option>
+                        <option value="accountant">Comptable (Finance/Reports)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" className="bg-[#fe6e00] hover:bg-[#d55c00] text-white py-1.5 px-4 rounded font-bold text-xs self-end cursor-pointer">
+                    Ajouter l'opérateur
+                  </button>
+                </form>
+
+                {/* API & DB Planning panel */}
+                <div className="bg-amber-50/60 border border-amber-200/50 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-extrabold uppercase text-[9px] tracking-wider">
+                    <Database className="w-4.5 h-4.5 text-[#fe6e00]" /> Architecture de Synchronisation & Routes API (Futur Backend)
+                  </div>
+                  <p className="text-[11px] text-gray-600 leading-normal">
+                    Pour assurer une transition transparente de l'application cliente vers une base de données MySQL persistante en production, les requêtes seront routées à travers une API Express sécurisée. Voici la documentation technique de référence :
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1 text-[11px]">
+                    <div className="bg-white p-3 border rounded-lg shadow-2xs font-mono">
+                      <span className="font-bold text-gray-900 text-[10px] block border-b pb-1 mb-2 uppercase">🛡️ Schéma de table SQL : users</span>
+                      <span className="text-gray-500 block leading-relaxed text-[10px]">
+                        CREATE TABLE users (<br />
+                        &nbsp;&nbsp;id VARCHAR(50) PRIMARY KEY,<br />
+                        &nbsp;&nbsp;username VARCHAR(50) UNIQUE NOT NULL,<br />
+                        &nbsp;&nbsp;name VARCHAR(100) NOT NULL,<br />
+                        &nbsp;&nbsp;role ENUM('admin', 'gerant', 'receptionist', 'accountant') NOT NULL,<br />
+                        &nbsp;&nbsp;password_hash VARCHAR(255) NOT NULL,<br />
+                        &nbsp;&nbsp;created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP<br />
+                        ) ENGINE=InnoDB;
+                      </span>
+                    </div>
+
+                    <div className="bg-white p-3 border rounded-lg shadow-2xs font-mono">
+                      <span className="font-bold text-gray-900 text-[10px] block border-b pb-1 mb-2 uppercase">🌐 Contrôleur d'API Express (Auth & Users)</span>
+                      <span className="text-gray-500 block leading-relaxed text-[10px]">
+                        <strong>POST /api/auth/login</strong> - Connexion hôtelière<br />
+                        <strong>GET /api/users</strong> - Lister tous les opérateurs<br />
+                        <strong>POST /api/users</strong> - Créer un compte opérateur<br />
+                        <strong>PUT /api/users/:id/role</strong> - Modifier les habilitations<br />
+                        <strong>DELETE /api/users/:id</strong> - Désactiver un accès hôtelier
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* INTEGRATION WEBHOOK SIMULATOR PANEL */}
               <div className="border-t border-gray-200 pt-4 flex flex-col gap-3">

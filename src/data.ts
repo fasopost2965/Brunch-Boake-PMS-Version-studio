@@ -1,4 +1,4 @@
-import { Room, Reservation, BrunchOrder, MaintenanceTicket, Guest, Payment } from './types';
+import { Room, Reservation, BrunchOrder, MaintenanceTicket, Guest, Payment, User } from './types';
 
 export const BRUNCH_MENU = [
   { id: 'b1', name: 'Brunch Signature Ivoirien', category: 'Plat', price: 12000, desc: 'Alloco croustillant, œufs pochés, saucisses grillées, sauce maison' },
@@ -113,3 +113,11 @@ export const DEFAULT_PAYMENTS: Payment[] = [
   { id: 'PAY-001', reservationId: 'RES-001', guestName: 'Mamadou Coulibaly', amount: 220000, method: 'Orange Money', date: '2026-07-10 14:32', reference: 'OM-99281729' },
   { id: 'PAY-002', reservationId: 'RES-002', guestName: 'Awa Koné', amount: 180000, method: 'MTN Momo', date: '2026-07-11 09:15', reference: 'MTN-8827161' }
 ];
+
+export const DEFAULT_USERS: User[] = [
+  { id: 'USR-001', username: 'admin', name: 'Super Administrateur', role: 'admin', password: 'admin', createdAt: '2026-07-12 08:00' },
+  { id: 'USR-002', username: 'gerant', name: 'Gérant Principal', role: 'gerant', password: 'gerant', createdAt: '2026-07-12 08:05' },
+  { id: 'USR-003', username: 'reception', name: 'Réceptionniste Jour', role: 'receptionist', password: 'reception', createdAt: '2026-07-12 08:10' },
+  { id: 'USR-004', username: 'compta', name: 'Comptable Senior', role: 'accountant', password: 'compta', createdAt: '2026-07-12 08:15' }
+];
+

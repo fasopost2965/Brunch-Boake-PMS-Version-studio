@@ -112,16 +112,16 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
         
         {/* Left 2 Columns: Brunch Menu Items */}
         <div className="lg:col-span-2 flex flex-col gap-4">
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4">
-            <h3 className="font-bold text-[#423d38] text-sm border-b border-[#e3e0dd] pb-2">Menu du Jour</h3>
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4">
+            <h3 className="font-bold text-[#423d38] text-sm border-b border-[#e3e0dd]/80 pb-2">Menu du Jour</h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {BRUNCH_MENU.map(item => {
                 const qtyInCart = cart[item.id] || 0;
                 return (
-                  <div key={item.id} className="border border-[#e3e0dd] rounded-lg p-4 flex flex-col justify-between gap-3 hover:border-[#fe6e00]/50 transition-all bg-[#f3f4f6]/30">
+                  <div key={item.id} className="border border-[#e3e0dd]/80 rounded-xl p-4 flex flex-col justify-between gap-3 hover:border-[#fe6e00]/50 hover:scale-[1.01] transition-all bg-white/50">
                     <div className="flex flex-col gap-1 text-xs">
-                      <span className="text-[9px] font-bold text-[#fe6e00] tracking-widest uppercase bg-[#fe6e00]/5 border border-[#fe6e00]/10 px-2 py-0.5 rounded w-fit">
+                      <span className="text-[9px] font-bold text-[#fe6e00] tracking-widest uppercase bg-[#fe6e00]/5 border border-[#fe6e00]/10 px-2 py-0.5 rounded-xl w-fit">
                         {item.category}
                       </span>
                       <h4 className="font-bold text-[#423d38] text-sm mt-1">{item.name}</h4>
@@ -135,7 +135,7 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
                         {qtyInCart > 0 && (
                           <button
                             onClick={() => handleRemoveFromCart(item.id)}
-                            className="w-7 h-7 rounded-md bg-white border border-[#e3e0dd] flex items-center justify-center hover:bg-[#f3f4f6] transition-colors text-[#423d38] font-bold cursor-pointer"
+                            className="w-7 h-7 rounded-xl bg-white border border-[#e3e0dd]/80 flex items-center justify-center hover:bg-[#f3f4f6]/80 transition-colors text-[#423d38] font-bold cursor-pointer"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
@@ -143,7 +143,7 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
                         {qtyInCart > 0 && <span className="font-bold text-sm px-1 text-[#423d38]">{qtyInCart}</span>}
                         <button
                           onClick={() => handleAddToCart(item.id)}
-                          className="w-7 h-7 rounded-md bg-[#fe6e00] text-white flex items-center justify-center hover:bg-[#ff6b00] transition-colors font-bold cursor-pointer"
+                          className="w-7 h-7 rounded-xl bg-[#fe6e00] text-white flex items-center justify-center hover:bg-[#ff6b00] transition-colors font-bold cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -158,8 +158,8 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
 
         {/* Right 1 Column: Cart Summary */}
         <div className="lg:col-span-1">
-          <div className="bg-white p-5 rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col gap-4 text-xs h-full min-h-[350px]">
-            <h3 className="font-bold text-[#423d38] text-sm border-b border-[#e3e0dd] pb-2 flex items-center gap-2">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col gap-4 text-xs h-full min-h-[350px]">
+            <h3 className="font-bold text-[#423d38] text-sm border-b border-[#e3e0dd]/80 pb-2 flex items-center gap-2">
               <ShoppingCart className="w-4.5 h-4.5 text-[#fe6e00]" /> Panier Actif
             </h3>
 
@@ -176,7 +176,7 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
                     const item = BRUNCH_MENU.find(i => i.id === itemId);
                     if (!item) return null;
                     return (
-                      <div key={itemId} className="flex justify-between items-center py-1.5 border-b border-[#e3e0dd]">
+                      <div key={itemId} className="flex justify-between items-center py-1.5 border-b border-[#e3e0dd]/80">
                         <div className="flex flex-col">
                           <span className="font-bold text-[#423d38]">{item.name}</span>
                           <span className="text-[#797067] text-[10px]">{qty} x {item.price.toLocaleString()} F</span>
@@ -187,15 +187,15 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
                   })}
                 </div>
 
-                <div className="h-px bg-[#e3e0dd]"></div>
+                <div className="h-px bg-[#e3e0dd]/80"></div>
 
                 {/* Billing selection */}
-                <div className="flex flex-col gap-1.5 bg-[#f3f4f6] p-3.5 rounded-lg border border-[#e3e0dd]">
+                <div className="flex flex-col gap-1.5 bg-[#f3f4f6]/50 p-3.5 rounded-xl border border-[#e3e0dd]/80">
                   <label className="font-bold text-[#797067] uppercase tracking-widest text-[9px]">Type de Facturation :</label>
                   <select
                     value={selectedRoom}
                     onChange={(e) => setSelectedRoom(e.target.value)}
-                    className="bg-white border border-[#e3e0dd] rounded-md p-2 focus:outline-none focus:border-[#fe6e00] font-bold text-[#423d38]"
+                    className="bg-white border border-[#e3e0dd]/80 rounded-xl p-2 focus:outline-none focus:border-[#fe6e00] font-bold text-[#423d38]"
                   >
                     <option value="">Vente Directe (Comptoir / Cash)</option>
                     {occupiedRooms.map(r => (
@@ -216,13 +216,13 @@ export const BrunchScreen: React.FC<BrunchScreenProps> = ({
                 <div className="flex gap-2 mt-auto pt-4">
                   <button
                     onClick={handleClearCart}
-                    className="bg-[#f3f4f6] hover:bg-[#e3e0dd] text-[#423d38] border border-[#e3e0dd] font-bold px-3 py-2.5 rounded-lg transition-all cursor-pointer flex-1"
+                    className="bg-[#f3f4f6]/50 hover:bg-[#e3e0dd]/80 text-[#423d38] border border-[#e3e0dd]/80 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer flex-1"
                   >
                     Vider
                   </button>
                   <button
                     onClick={handlePlaceOrder}
-                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-5 py-2.5 rounded-lg transition-all cursor-pointer flex-[2] text-center"
+                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-5 py-2.5 rounded-xl transition-all cursor-pointer flex-[2] text-center"
                   >
                     Valider la commande
                   </button>

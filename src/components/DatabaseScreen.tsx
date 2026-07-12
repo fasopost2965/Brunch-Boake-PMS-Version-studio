@@ -217,7 +217,58 @@ CREATE TABLE IF NOT EXISTS payments (
             </pre>
           </div>
         </div>
+      </div>
 
+      {/* REST API SIMULATION LAYER DOCUMENTATION */}
+      <div className="bg-[#fef9c2]/20 border border-[#fef3c7] p-6 rounded-xl flex flex-col gap-4 text-xs">
+        <div className="flex gap-2.5 items-center">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#fe6e00] animate-pulse"></div>
+          <h3 className="font-bold text-[#423d38] text-sm uppercase tracking-wider">Service de Simulation d'API REST (src/api/index.ts)</h3>
+        </div>
+
+        <p className="text-[#797067] leading-relaxed">
+          Pour préparer la transition vers une architecture de production et simplifier l'intégration d'un serveur d'API réel, nous avons mis en place un <strong>SDK de simulation REST</strong> dans le dossier <code>src/api</code>. Ce SDK encapsule toutes les opérations de lecture et écriture dans le <code>localStorage</code>, tout en renvoyant des objets <code>Promise</code> asynchrones. 
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+          <div className="bg-white p-4 rounded-lg shadow-2xs border border-[#e3e0dd] flex flex-col gap-2">
+            <span className="font-bold text-[#423d38]">📡 Architecture Prête</span>
+            <p className="text-gray-500 leading-normal text-[11px]">
+              Toutes les requêtes retournent des promesses avec une latence simulée de 120ms. Les composants hôteliers n'ont qu'à appeler <code>await api.reservations.getAll()</code> sans se soucier du support de stockage sous-jacent.
+            </p>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-2xs border border-[#e3e0dd] flex flex-col gap-2">
+            <span className="font-bold text-[#423d38]">📝 Logs Console en Temps Réel</span>
+            <p className="text-gray-500 leading-normal text-[11px]">
+              Ouvrez les outils de développement (F12) pour observer la trace des appels d'API : chaque action déclenche des logs détaillés comme <code>[REST API] GET /api/rooms - Status 200 (OK)</code>.
+            </p>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-2xs border border-[#e3e0dd] flex flex-col gap-2">
+            <span className="font-bold text-[#423d38]">🔄 Substitution Simple</span>
+            <p className="text-gray-500 leading-normal text-[11px]">
+              Une fois votre base de données MySQL configurée en production, remplacez simplement les fonctions du fichier <code>src/api/index.ts</code> par de vrais appels <code>fetch()</code> ou <code>axios</code> vers vos routes Node.js.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-800 text-gray-300 font-mono text-[11px] leading-relaxed mt-2 overflow-x-auto">
+          <span className="text-[#fe6e00] font-bold block mb-1">// Exemple d'appel pour enregistrer une réservation</span>
+          <span className="text-gray-400">
+            import &#123; api &#125; from '../api';<br />
+            <br />
+            <span className="text-emerald-400">async</span> function validerArrivee(reservationId) &#123;<br />
+            &nbsp;&nbsp;<span className="text-blue-400">try</span> &#123;<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-gray-500">// Simule un appel PUT /api/reservations/:id</span><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;const res = <span className="text-emerald-400">await</span> api.reservations.update(reservationId, &#123; status: 'En Cours' &#125;);<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;console.log("Réservation mise à jour :", res);<br />
+            &nbsp;&nbsp;&#125; <span className="text-blue-400">catch</span> (err) &#123;<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;console.error("Erreur de communication API :", err);<br />
+            &nbsp;&nbsp;&#125;<br />
+            &#125;
+          </span>
+        </div>
       </div>
     </div>
   );

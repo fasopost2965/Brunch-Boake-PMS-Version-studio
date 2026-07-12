@@ -1,7 +1,7 @@
 export interface Room {
   id: string; // Room number (e.g., '101')
   type: string; // 'Standard', 'Deluxe', 'Suite Royale', 'Pavillon Brunch'
-  status: 'Libre' | 'Occupé' | 'Sale' | 'Maintenance';
+  status: 'Libre' | 'Occupé' | 'Sale' | 'Maintenance' | 'OOO' | 'OOS';
   price: number; // in FCFA
   capacity: number;
 }
@@ -133,5 +133,19 @@ export interface InventoryMovement {
   reason: string;
   operator: string;
   timestamp: string;
+}
+
+// ==========================================
+// USER ACCOUNTS & RBAC MANAGEMENT TYPES
+// ==========================================
+export type UserRole = 'admin' | 'gerant' | 'receptionist' | 'accountant';
+
+export interface User {
+  id: string;
+  username: string;
+  name: string;
+  role: UserRole;
+  password?: string;
+  createdAt: string;
 }
 

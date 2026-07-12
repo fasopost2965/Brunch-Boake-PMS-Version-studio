@@ -42,8 +42,8 @@ export const ArrivalsScreen: React.FC<ArrivalsScreenProps> = ({
       </div>
 
       {arrivingToday.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-xl border border-[#e3e0dd] shadow-sm flex flex-col items-center gap-3">
-          <div className="bg-[#fe6e00]/10 p-4 rounded-full text-[#fe6e00]">
+        <div className="bg-white/80 backdrop-blur-md p-12 text-center rounded-xl border border-[#e3e0dd]/80 shadow-sm flex flex-col items-center gap-3">
+          <div className="bg-[#fe6e00]/10 p-4 rounded-xl text-[#fe6e00]">
             <ClipboardList className="w-8 h-8" />
           </div>
           <span className="font-bold text-[#423d38] text-sm">Aucune arrivée en attente</span>
@@ -52,7 +52,7 @@ export const ArrivalsScreen: React.FC<ArrivalsScreenProps> = ({
           </p>
           <button
             onClick={() => setActiveTab('checkin')}
-            className="mt-2 bg-[#423d38] hover:bg-[#423d38]/90 text-white font-bold px-4 py-2 rounded-lg text-xs transition-colors cursor-pointer"
+            className="mt-2 bg-[#423d38] hover:bg-[#423d38]/90 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
           >
             Créer un Check-in de passage (Walk-in)
           </button>
@@ -66,11 +66,11 @@ export const ArrivalsScreen: React.FC<ArrivalsScreenProps> = ({
             return (
               <div 
                 key={res.id} 
-                className="bg-white border border-[#e3e0dd] rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-all"
+                className="bg-white/80 backdrop-blur-md border border-[#e3e0dd]/80 rounded-xl p-5 shadow-sm flex flex-col justify-between gap-4 hover:shadow-md hover:scale-[1.01] transition-all"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-[#fe6e00] tracking-wider uppercase bg-[#fe6e00]/10 px-2 py-0.5 rounded-md w-fit">
+                    <span className="text-[10px] font-bold text-[#fe6e00] tracking-wider uppercase bg-[#fe6e00]/10 px-2 py-0.5 rounded-xl w-fit">
                       Ref: {res.id}
                     </span>
                     <h3 className="font-bold text-[#423d38] text-base mt-1">{res.guestName}</h3>
@@ -78,7 +78,7 @@ export const ArrivalsScreen: React.FC<ArrivalsScreenProps> = ({
                   </div>
                   
                   <div className="flex flex-col items-end gap-1">
-                    <span className="font-bold text-[#423d38] text-sm bg-[#f3f4f6] border border-[#e3e0dd] px-2.5 py-1 rounded-md">
+                    <span className="font-bold text-[#423d38] text-sm bg-white/60 border border-[#e3e0dd]/80 px-2.5 py-1 rounded-xl">
                       Chambre {res.roomNumber}
                     </span>
                     <span className="text-[10px] text-[#797067] font-semibold">{room?.type}</span>
@@ -105,7 +105,7 @@ export const ArrivalsScreen: React.FC<ArrivalsScreenProps> = ({
                 <div className="flex gap-2 justify-end mt-2">
                   <button
                     onClick={() => handlePerformCheckIn(res.id, res.roomNumber, res.guestName)}
-                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                    className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     Valider le Check-In

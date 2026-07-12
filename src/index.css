@@ -56,33 +56,51 @@
 @media print {
   body {
     background-color: white !important;
-    color: black !important;
+    color: #111111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  /* Hide everything on the page */
+  /* Hide everything on the page by default */
   body * {
     visibility: hidden;
   }
-  /* Ensure the printable invoice and its children are visible */
-  #printable-invoice, #printable-invoice * {
+  /* Ensure printable documents and their complete descendants are visible */
+  #printable-invoice, #printable-invoice *,
+  #printable-receipt, #printable-receipt *,
+  #printable-police-sheet, #printable-police-sheet *,
+  #printable-report, #printable-report * {
     visibility: visible;
   }
-  /* Position and scale the printable invoice to cover the full width */
-  #printable-invoice {
+  /* Position and expand the active printable document */
+  #printable-invoice,
+  #printable-receipt,
+  #printable-police-sheet,
+  #printable-report {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 100% !important;
     max-width: 100% !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 1rem !important;
+    padding: 1.2cm !important;
     margin: 0 !important;
+    background: white !important;
+    color: black !important;
   }
-  /* Hide print buttons and other controls during print */
-  #printable-invoice .print-hide,
+  /* Hide buttons, selects, filter bars, close actions and other non-print assets */
+  button,
+  select,
+  input,
+  .print-hide,
+  .no-print,
+  .no-print-important,
   #printable-invoice button,
-  #printable-invoice select,
-  #printable-invoice .border-t.border-\[\#e3e0dd\].pt-4.font-sans {
+  #printable-invoice .print-hide,
+  #printable-receipt button,
+  #printable-police-sheet button,
+  #printable-report button {
     display: none !important;
+    visibility: hidden !important;
   }
 }

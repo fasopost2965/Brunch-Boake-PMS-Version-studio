@@ -315,6 +315,7 @@ export default function App() {
               orders={orders}
               payments={payments}
               rooms={rooms}
+              triggerToast={triggerToast}
             />
           )}
 

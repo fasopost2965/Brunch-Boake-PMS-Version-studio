@@ -555,7 +555,7 @@ export const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
             </div>
 
             {/* Printable Frame Area */}
-            <div className="p-6 bg-[#fcfaf7] text-gray-800 font-sans text-xs flex flex-col gap-4 border-b border-gray-100 overflow-y-auto flex-1">
+            <div id="printable-receipt" className="p-6 bg-[#fcfaf7] text-gray-800 font-sans text-xs flex flex-col gap-4 border-b border-gray-100 overflow-y-auto flex-1">
               
               {/* Receipt Header */}
               <div className="text-center flex flex-col items-center border-b border-dashed border-gray-300 pb-4">
@@ -628,13 +628,20 @@ export const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                   <span>Ref: {selectedPaymentForReceipt.reference}</span>
                 </div>
               </div>
+
+              {/* Legal Notice Footer */}
+              <div className="mt-2 pt-2 border-t border-gray-200 text-[8px] text-gray-400 text-center font-sans">
+                <p className="font-bold">Brunch Bouaké VIP • Quartier Kennedy • Bouaké, Côte d'Ivoire</p>
+                <p>N° CC: 2104567 T • RCCM: CI-BKE-2024-B-1289</p>
+                <p className="italic mt-1">Merci de votre confiance ! Ce reçu certifie votre règlement.</p>
+              </div>
             </div>
 
             {/* Print and Close Actions */}
             <div className="bg-gray-50 px-5 py-4 flex flex-wrap gap-2 justify-end shrink-0">
               <button
                 onClick={() => {
-                  triggerToast(`Impression en cours pour le reçu ${selectedPaymentForReceipt.id} (simulation)`);
+                  triggerToast(`Impression en cours pour le reçu ${selectedPaymentForReceipt.id}`);
                   window.print();
                 }}
                 className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-[#fe6e00]/10"
@@ -643,7 +650,10 @@ export const PaymentsScreen: React.FC<PaymentsScreenProps> = ({
                 Imprimer le ticket
               </button>
               <button
-                onClick={() => triggerToast(`Voucher de transaction ${selectedPaymentForReceipt.id} enregistré en PDF.`)}
+                onClick={() => {
+                  triggerToast(`Génération du PDF pour le reçu ${selectedPaymentForReceipt.id} (veuillez choisir Enregistrer en PDF)`);
+                  window.print();
+                }}
                 className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
               >
                 <Download className="w-4 h-4 text-emerald-600" />

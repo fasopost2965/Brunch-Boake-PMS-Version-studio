@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Reservation, BrunchOrder, Payment, Room } from '../types';
+import { BrunchLogo } from './BrunchLogo';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -23,7 +24,8 @@ import {
   Download, 
   Calendar, 
   ArrowRight, 
-  CreditCard 
+  CreditCard,
+  Printer
 } from 'lucide-react';
 
 interface ReportsScreenProps {
@@ -31,13 +33,15 @@ interface ReportsScreenProps {
   orders: BrunchOrder[];
   payments: Payment[];
   rooms: Room[];
+  triggerToast: (msg: string) => void;
 }
 
 export const ReportsScreen: React.FC<ReportsScreenProps> = ({
   reservations,
   orders,
   payments,
-  rooms
+  rooms,
+  triggerToast
 }) => {
   // Date range state default to July 2026 (encompassing major mock data)
   const [startDate, setStartDate] = useState<string>('2026-07-01');
@@ -282,13 +286,27 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({
           <h2 className="text-xl font-bold text-[#423d38] tracking-tight">Rapports & Analyses PMS</h2>
           <p className="text-xs text-[#797067]">Statistiques financières, taux d'occupation et indicateurs de performance clés (KPI).</p>
         </div>
-        <button
-          onClick={handleExportCSV}
-          className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-extrabold py-2 px-4 rounded-xl text-xs transition-all duration-200 flex items-center gap-2 shadow-sm self-start sm:self-center cursor-pointer border border-[#fe6e00]/20 hover:scale-102 shrink-0"
-        >
-          <Download className="w-4 h-4 shrink-0" />
-          Exporter la sélection (CSV)
-        </button>
+        <div className="flex flex-wrap gap-2 self-start sm:self-center">
+          <button
+            onClick={handleExportCSV}
+            className="bg-white hover:bg-gray-50 border border-gray-200 text-[#423d38] font-bold py-2 px-4 rounded-xl text-xs transition-all duration-200 flex items-center gap-2 shadow-sm cursor-pointer hover:scale-102 shrink-0"
+          >
+            <Download className="w-4 h-4 shrink-0 text-[#fe6e00]" />
+            Exporter CSV
+          </button>
+          <button
+            onClick={() => {
+              triggerToast("Préparation du rapport imprimable et ouverture de la boîte de dialogue d'impression...");
+              setTimeout(() => {
+                window.print();
+              }, 300);
+            }}
+            className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-extrabold py-2 px-4 rounded-xl text-xs transition-all duration-200 flex items-center gap-2 shadow-sm cursor-pointer border border-[#fe6e00]/20 hover:scale-102 shrink-0"
+          >
+            <Printer className="w-4 h-4 shrink-0" />
+            Imprimer / PDF
+          </button>
+        </div>
       </div>
 
       {/* DATE RANGE FILTER PANEL */}
@@ -712,6 +730,200 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({
         </div>
 
       </div>
+
+      {/* Hidden Print-Ready Report Template */}
+      <div id="printable-report" className="hidden print:block p-8 bg-white text-gray-900 font-sans text-xs">
+        {/* Header with Côte d'Ivoire & Hotel Header */}
+        <div className="flex justify-between items-center border-b-2 border-gray-900 pb-4 mb-6">
+          <div className="flex items-center gap-3">
+            <BrunchLogo size={70} />
+            <div>
+              <h1 className="text-xl font-extrabold text-gray-900 uppercase tracking-tight">Brunch Bouaké</h1>
+              <p className="text-[10px] text-gray-500 font-medium">Hôtel de Charme & Pavillons Brunch VIP</p>
+              <p className="text-[8px] text-gray-400">Quartier Kennedy, Bouaké • Côte d'Ivoire</p>
+            </div>
+          </div>
+          <div className="text-right text-[9px] text-gray-500 font-medium leading-relaxed">
+            <p className="font-bold text-gray-800">DOCUMENT COMPTABLE OFFICIEL</p>
+            <p>RCCM : CI-BKE-2024-B-1289</p>
+            <p>Compte Contribuable : 2104567 T</p>
+            <p>Tél : +225 07 08 09 10 11 / +225 21 00 12 34</p>
+          </div>
+        </div>
+
+        {/* Title Block */}
+        <div className="text-center bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+          <h2 className="text-base font-black text-gray-900 uppercase tracking-wider">
+            Rapport de Performance & d'Activité PMS
+          </h2>
+          <p className="text-[11px] text-gray-600 mt-1 font-semibold">
+            Période d'Analyse : {startDate ? `du ${new Date(startDate).toLocaleDateString('fr-FR')}` : "le début"} {endDate ? `au ${new Date(endDate).toLocaleDateString('fr-FR')}` : "la date du jour"}
+          </p>
+          <p className="text-[9px] text-gray-400 mt-0.5">
+            Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')} par le Service Comptable
+          </p>
+        </div>
+
+        {/* KPI Grid */}
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+            <span className="text-[8px] uppercase tracking-wider text-gray-500 block font-bold">Chiffre d'Affaires Combiné</span>
+            <strong className="text-sm font-extrabold text-gray-900 font-mono block mt-1">
+              {totalRevenueCombined.toLocaleString()} F
+            </strong>
+            <span className="text-[7px] text-gray-400 font-semibold block mt-0.5">Hébergement + Brunch</span>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+            <span className="text-[8px] uppercase tracking-wider text-gray-500 block font-bold">Fonds Encaissés (Caisse)</span>
+            <strong className="text-sm font-extrabold text-emerald-700 font-mono block mt-1">
+              {cashReceived.toLocaleString()} F
+            </strong>
+            <span className="text-[7px] text-gray-400 font-semibold block mt-0.5">Trésorerie effective</span>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+            <span className="text-[8px] uppercase tracking-wider text-gray-500 block font-bold">ADR (Prix Moyen Chambre)</span>
+            <strong className="text-sm font-extrabold text-gray-900 font-mono block mt-1">
+              {adr.toLocaleString()} F
+            </strong>
+            <span className="text-[7px] text-gray-400 font-semibold block mt-0.5">Panier Hébergement</span>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/50">
+            <span className="text-[8px] uppercase tracking-wider text-gray-500 block font-bold">Panier Moyen / Séjour</span>
+            <strong className="text-sm font-extrabold text-gray-900 font-mono block mt-1">
+              {averageBasket.toLocaleString()} F
+            </strong>
+            <span className="text-[7px] text-gray-400 font-semibold block mt-0.5">Valeur par réservation</span>
+          </div>
+        </div>
+
+        {/* Revenue Details Block */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="border border-gray-200 rounded-lg p-3">
+            <h3 className="font-bold text-[9px] uppercase tracking-wider text-gray-700 border-b border-gray-100 pb-1 mb-2">Répartition des Revenus</h3>
+            <div className="flex flex-col gap-1.5 font-semibold text-[10px]">
+              <div className="flex justify-between">
+                <span>Hébergement & Chambres :</span>
+                <span className="font-mono">{totalRoomRevenue.toLocaleString()} F ({totalRevenueCombined > 0 ? Math.round((totalRoomRevenue / totalRevenueCombined) * 100) : 0}%)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Brunch, Bar & Café :</span>
+                <span className="font-mono">{totalBrunchRevenue.toLocaleString()} F ({totalRevenueCombined > 0 ? Math.round((totalBrunchRevenue / totalRevenueCombined) * 100) : 0}%)</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="border border-gray-200 rounded-lg p-3">
+            <h3 className="font-bold text-[9px] uppercase tracking-wider text-gray-700 border-b border-gray-100 pb-1 mb-2">Canaux de Réservation</h3>
+            <div className="flex flex-col gap-1 text-[9px]">
+              {Object.entries(sourceStats).map(([name, data]) => {
+                const pct = totalRoomRevenue > 0 ? Math.round((data.revenue / totalRoomRevenue) * 100) : 0;
+                return (
+                  <div key={name} className="flex justify-between items-center">
+                    <span>{name} ({data.count}) :</span>
+                    <span className="font-mono font-bold">{data.revenue.toLocaleString()} F ({pct}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Lists: Stays and Ledger */}
+        <div className="mb-6">
+          <h3 className="font-bold text-[9px] uppercase tracking-wider text-gray-700 border-b border-gray-200 pb-1 mb-2">
+            Séjours & Réservations de la Période ({filteredReservations.length})
+          </h3>
+          <table className="w-full text-left border-collapse text-[9px]">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700 font-bold border-b border-gray-200">
+                <th className="py-1 px-1.5">ID</th>
+                <th className="py-1 px-1.5">Client</th>
+                <th className="py-1 px-1.5">Chambre</th>
+                <th className="py-1 px-1.5">Arrivée - Départ</th>
+                <th className="py-1 px-1.5">Statut</th>
+                <th className="py-1 px-1.5 text-right">Facture</th>
+                <th className="py-1 px-1.5 text-right">Réglé</th>
+                <th className="py-1 px-1.5 text-right">Solde</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredReservations.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-2 text-center text-gray-400">Aucune réservation sur cette période.</td>
+                </tr>
+              ) : (
+                filteredReservations.map(r => {
+                  const solde = Math.max(0, r.totalBill - r.paidAmount);
+                  return (
+                    <tr key={r.id} className="border-b border-gray-100 text-gray-800">
+                      <td className="py-1 px-1.5 font-mono">{r.id}</td>
+                      <td className="py-1 px-1.5 font-bold">{r.guestName}</td>
+                      <td className="py-1 px-1.5 font-semibold">CH {r.roomNumber}</td>
+                      <td className="py-1 px-1.5">{r.checkIn} au {r.checkOut}</td>
+                      <td className="py-1 px-1.5">{r.status}</td>
+                      <td className="py-1 px-1.5 text-right font-mono">{r.totalBill.toLocaleString()} F</td>
+                      <td className="py-1 px-1.5 text-right font-mono text-emerald-700">{r.paidAmount.toLocaleString()} F</td>
+                      <td className={`py-1 px-1.5 text-right font-mono font-bold ${solde > 0 ? 'text-amber-600' : 'text-gray-500'}`}>{solde.toLocaleString()} F</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-bold text-[9px] uppercase tracking-wider text-gray-700 border-b border-gray-200 pb-1 mb-2">
+            Journal de Caisse & Règlements Associés ({filteredPayments.length})
+          </h3>
+          <table className="w-full text-left border-collapse text-[9px]">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700 font-bold border-b border-gray-200">
+                <th className="py-1 px-1.5">ID Règlement</th>
+                <th className="py-1 px-1.5">Date</th>
+                <th className="py-1 px-1.5">Client</th>
+                <th className="py-1 px-1.5">Mode</th>
+                <th className="py-1 px-1.5">Référence</th>
+                <th className="py-1 px-1.5 text-right">Montant Encaissé</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPayments.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-2 text-center text-gray-400">Aucun encaissement sur cette période.</td>
+                </tr>
+              ) : (
+                filteredPayments.map(p => (
+                  <tr key={p.id} className="border-b border-gray-100 text-gray-800">
+                    <td className="py-1 px-1.5 font-mono">{p.id}</td>
+                    <td className="py-1 px-1.5 font-mono">{p.date}</td>
+                    <td className="py-1 px-1.5 font-bold">{p.guestName}</td>
+                    <td className="py-1 px-1.5">{p.method}</td>
+                    <td className="py-1 px-1.5 font-mono text-[8px]">{p.reference || 'N/A'}</td>
+                    <td className="py-1 px-1.5 text-right font-mono font-bold text-emerald-700">+{p.amount.toLocaleString()} F</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer & Signature Section */}
+        <div className="mt-10 flex justify-between items-start text-[10px]">
+          <div>
+            <p className="text-[8px] text-gray-400">Brunch Bouaké PMS Secured Terminal • Document Authentique</p>
+            <p className="text-[8px] text-gray-400 font-mono mt-0.5">Code de Contrôle : BKE-PMS-{Math.floor(100000 + Math.random() * 900000)}</p>
+          </div>
+          <div className="w-48 text-center">
+            <p className="font-bold text-gray-800 border-b border-gray-300 pb-12">Le Responsable Financier / La Direction</p>
+            <p className="text-[8px] text-gray-400 mt-2">Signature & Cachet de l'Établissement</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };

@@ -8,6 +8,7 @@ interface ReservationsScreenProps {
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   setRooms: React.Dispatch<React.SetStateAction<Room[]>>;
   triggerToast: (msg: string) => void;
+  hotelConfig?: any;
 }
 
 export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
@@ -15,7 +16,8 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
   rooms,
   setReservations,
   setRooms,
-  triggerToast
+  triggerToast,
+  hotelConfig
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Tous' | 'Confirmé' | 'En Cours' | 'Terminé'>('Tous');
@@ -76,8 +78,10 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
     const room = rooms.find(r => r.id === editRoomNumber);
-    const price = room ? room.price : 35000;
-    const totalBill = price * diffDays;
+    const basePrice = room
+      ? (hotelConfig?.prices?.[room.type] ?? room.price)
+      : 35000;
+    const totalBill = basePrice * diffDays;
 
     setReservations(prev => prev.map(res => {
       if (res.id === editingRes.id) {
@@ -149,7 +153,8 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
     const end = new Date(newCheckOut);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-    const totalBill = room.price * diffDays;
+    const basePrice = hotelConfig?.prices?.[room.type] ?? room.price;
+    const totalBill = basePrice * diffDays;
 
     const channelTypeMap: Record<string, string> = {
       'Direct': 'Direct',
@@ -407,9 +412,9 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
         </div>
       </div>
 
-      {/* TABLE */}
+      {/* TABLE / CARDS CONTAINER */}
       <div className="bg-white rounded-xl border border-[#e3e0dd] shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-[#fe6e00]/5 border-b border-[#e3e0dd] text-[#fe6e00] font-bold uppercase tracking-widest text-[10px]">
@@ -524,6 +529,101 @@ export const ReservationsScreen: React.FC<ReservationsScreenProps> = ({
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE GRID CARDS VIEW */}
+        <div className="block md:hidden divide-y divide-[#e3e0dd] text-xs">
+          {filteredReservations.length === 0 ? (
+            <div className="p-8 text-center text-[#797067] italic">
+              Aucune réservation ne correspond aux critères.
+            </div>
+          ) : (
+            filteredReservations.map(res => {
+              const unpaid = res.totalBill - res.paidAmount;
+              return (
+                <div key={res.id} className="p-4 flex flex-col gap-3 hover:bg-[#f3f4f6]/30 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#423d38] text-xs">{res.id}</span>
+                    <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] ${
+                      res.status === 'En Cours' 
+                        ? 'bg-[#fef2f2] text-[#fb2c36] border border-[#fb2c36]/20'
+                        : res.status === 'Confirmé'
+                        ? 'bg-[#dbeafe] text-[#1447e6] border border-[#1447e6]/20'
+                        : 'bg-[#dcfce7] text-[#016630] border border-[#016630]/20'
+                    }`}>
+                      {res.status === 'En Cours' ? 'Occupée' : res.status}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-[#423d38] text-sm leading-tight">{res.guestName}</span>
+                      <span className="bg-[#fe6e00]/10 text-[#fe6e00] font-bold px-2 py-0.5 rounded text-[9px] shrink-0">
+                        CH {res.roomNumber}
+                      </span>
+                    </div>
+                    <span className="text-[#797067] text-[10px] truncate">{res.guestEmail}</span>
+                    {res.originCountry && <span className="text-gray-400 text-[9px]">Pays: {res.originCountry}</span>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                    <div>
+                      <span className="text-[8px] uppercase font-bold tracking-wider text-[#797067] block">Dates</span>
+                      <span className="font-semibold text-[#423d38] text-[9px] flex items-center gap-1 mt-0.5">
+                        {res.checkIn} <ChevronRight className="w-2.5 h-2.5" /> {res.checkOut}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase font-bold tracking-wider text-[#797067] block">Source</span>
+                      <span className="font-semibold text-[#423d38] text-[9px] block mt-0.5 truncate">
+                        {res.bookingSource || 'Direct'} {res.channelName ? `(${res.channelName})` : ''}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase font-bold tracking-wider text-[#797067] block">Facture Totale</span>
+                      <span className="font-extrabold text-xs text-[#423d38] block mt-0.5">
+                        {res.totalBill.toLocaleString()} F
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase font-bold tracking-wider text-[#797067] block">Payé</span>
+                      <span className={`font-bold text-xs block mt-0.5 ${unpaid <= 0 ? 'text-[#016630]' : unpaid === res.totalBill ? 'text-[#fb2c36]' : 'text-[#fe6e00]'}`}>
+                        {res.paidAmount.toLocaleString()} F
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions buttons */}
+                  <div className="flex items-center justify-between border-t border-[#edebe9] pt-2 mt-1 gap-2">
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => handleStartEdit(res)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-2 py-1.5 rounded text-[10px] flex items-center gap-1 cursor-pointer"
+                        title="Modifier"
+                      >
+                        <Edit className="w-3.5 h-3.5" /> Modif.
+                      </button>
+                      <button
+                        onClick={() => handleDelete(res.id, res.guestName)}
+                        className="bg-red-50 hover:bg-red-100 text-[#fb2c36] font-bold px-2 py-1.5 rounded text-[10px] flex items-center gap-1 border border-red-200 cursor-pointer"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Suppr.
+                      </button>
+                    </div>
+                    {unpaid > 0 && (
+                      <button
+                        onClick={() => handleSettlePayment(res.id, res.totalBill, res.guestName)}
+                        className="bg-[#dcfce7] hover:bg-[#00c758] hover:text-white text-[#016630] font-bold px-3 py-1.5 rounded text-[10px] border border-[#016630]/20 transition-all cursor-pointer shadow-sm active:scale-95"
+                      >
+                        Solder Solde
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

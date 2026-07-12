@@ -3,9 +3,39 @@ import React from 'react';
 interface BrunchLogoProps {
   className?: string;
   size?: number; // width/height in pixels
+  logoUrl?: string; // custom image logo override
 }
 
-export const BrunchLogo: React.FC<BrunchLogoProps> = ({ className = '', size = 120 }) => {
+export const BrunchLogo: React.FC<BrunchLogoProps> = ({ className = '', size = 120, logoUrl }) => {
+  // Try to find custom logo in localStorage fallback
+  let fallbackLogoUrl = '';
+  try {
+    const savedConfig = localStorage.getItem('bouake_pms_config');
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+      if (parsed && parsed.logoUrl) {
+        fallbackLogoUrl = parsed.logoUrl;
+      }
+    }
+  } catch (e) {
+    console.error('Error reading fallback logo from config:', e);
+  }
+
+  const activeLogoUrl = logoUrl || fallbackLogoUrl;
+
+  if (activeLogoUrl) {
+    return (
+      <div className={`flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
+        <img 
+          src={activeLogoUrl} 
+          alt="Hotel Logo" 
+          className="max-w-full max-h-full object-contain rounded-lg"
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`flex flex-col items-center justify-center text-center ${className}`} style={{ width: size, height: size * 1.15 }}>
       <svg

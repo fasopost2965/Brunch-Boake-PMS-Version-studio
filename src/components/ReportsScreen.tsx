@@ -13,7 +13,7 @@ import {
   Cell, 
   CartesianGrid 
 } from 'recharts';
-import { DollarSign, Percent, TrendingUp, Users } from 'lucide-react';
+import { DollarSign, Percent, TrendingUp, Users, Download } from 'lucide-react';
 
 interface ReportsScreenProps {
   reservations: Reservation[];
@@ -93,11 +93,82 @@ export const ReportsScreen: React.FC<ReportsScreenProps> = ({
 
   const COLORS = ['#fe6e00', '#423d38'];
 
+  const handleExportCSV = () => {
+    let csvContent = "\uFEFF"; // Unicode BOM for proper Excel UTF-8 display
+    csvContent += "sep=;\n"; // Force Excel to use semicolon separator
+
+    // 1. Title & Metadata
+    csvContent += "=== RAPPORT D'ACTIVITÉ COMPTABILITÉ & PMS ===\n";
+    csvContent += `Établissement;Brunch Bouaké\n`;
+    csvContent += `Date d'exportation;${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}\n\n`;
+
+    // 2. KPIs Section
+    csvContent += "--- INDICATEURS CLÉS DE PERFORMANCE (KPIs) ---\n";
+    csvContent += "Indicateur;Valeur;Unité\n";
+    csvContent += `Chiffre d'Affaires Global (Hébergement + Brunch);${totalRevenueCombined};FCFA\n`;
+    csvContent += `Taux d'Occupation Actuel;${occupancyRate};%\n`;
+    csvContent += `ADR (Prix Moyen d'une Chambre);${adr};FCFA\n`;
+    csvContent += `Encaissements Effectifs (Trésorerie Réelle);${cashReceived};FCFA\n\n`;
+
+    // 3. Revenue Breakdown Section
+    csvContent += "--- RÉPARTITION DES REVENUS ---\n";
+    csvContent += "Type de Revenu;Montant (FCFA);Part (%)\n";
+    const roomPct = totalRevenueCombined > 0 ? Math.round((totalRoomRevenue / totalRevenueCombined) * 100) : 0;
+    const brunchPct = totalRevenueCombined > 0 ? Math.round((totalBrunchRevenue / totalRevenueCombined) * 100) : 0;
+    csvContent += `Hébergement / Chambres;${totalRoomRevenue};${roomPct}%\n`;
+    csvContent += `Brunch & Café (Point de Vente);${totalBrunchRevenue};${brunchPct}%\n\n`;
+
+    // 4. Channels Performance Section
+    csvContent += "--- PERFORMANCE PAR CANAL DE RÉSERVATION ---\n";
+    csvContent += "Canal;Nombre de réservations;Chiffre d'Affaires (FCFA);Part des ventes hôtelières\n";
+    Object.entries(sourceStats).forEach(([name, data]) => {
+      const pct = totalRoomRevenue > 0 ? Math.round((data.revenue / totalRoomRevenue) * 100) : 0;
+      csvContent += `"${name.replace(/"/g, '""')}";${data.count};${data.revenue};"${pct}%"\n`;
+    });
+    csvContent += "\n";
+
+    // 5. Stays/Reservations details
+    csvContent += "--- DÉTAILS DES SÉJOURS / RÉSERVATIONS ---\n";
+    csvContent += "ID Réservation;Nom du Client;Chambre;Date Arrivée;Date Départ;Statut du Séjour;Montant Total Facturé (FCFA);Montant Total Réglé (FCFA);Solde Restant Dû (FCFA)\n";
+    reservations.forEach(r => {
+      const rest = Math.max(0, r.totalBill - r.paidAmount);
+      csvContent += `"${r.id}";"${r.guestName.replace(/"/g, '""')}";"CH ${r.roomNumber}";"${r.checkIn}";"${r.checkOut}";"${r.status}";${r.totalBill};${r.paidAmount};${rest}\n`;
+    });
+    csvContent += "\n";
+
+    // 6. Payment ledger details
+    csvContent += "--- JOURNAL DE CAISSE ET ENCAISSEMENTS ---\n";
+    csvContent += "ID Règlement;ID Réservation;Client;Montant Encaissé (FCFA);Mode de Règlement;Date d'Encaissement;Référence de Transaction\n";
+    payments.forEach(p => {
+      csvContent += `"${p.id}";"${p.reservationId}";"${p.guestName.replace(/"/g, '""')}";${p.amount};"${p.method}";"${p.date}";"${p.reference ? p.reference.replace(/"/g, '""') : ''}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute("download", `Rapport_Brunch_Bouake_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in" id="reports_screen">
-      <div>
-        <h2 className="text-xl font-bold text-[#423d38] tracking-tight">Rapports & Analyses PMS</h2>
-        <p className="text-xs text-[#797067]">Statistiques financières, taux d'occupation et indicateurs de performance clés (KPI).</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e3e0dd] pb-4">
+        <div>
+          <h2 className="text-xl font-bold text-[#423d38] tracking-tight">Rapports & Analyses PMS</h2>
+          <p className="text-xs text-[#797067]">Statistiques financières, taux d'occupation et indicateurs de performance clés (KPI).</p>
+        </div>
+        <button
+          onClick={handleExportCSV}
+          className="bg-[#fe6e00] hover:bg-[#ff6b00] text-white font-extrabold py-2 px-4 rounded-xl text-xs transition-all duration-200 flex items-center gap-2 shadow-sm self-start sm:self-center cursor-pointer border border-[#fe6e00]/20 hover:scale-102"
+        >
+          <Download className="w-4 h-4 shrink-0" />
+          Exporter les données (CSV)
+        </button>
       </div>
 
       {/* STAT CARDS */}

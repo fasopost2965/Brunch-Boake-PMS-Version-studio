@@ -9,14 +9,14 @@ export const BRUNCH_MENU = [
 ];
 
 export const DEFAULT_ROOMS: Room[] = [
-  { id: '101', type: 'Standard', status: 'Libre', price: 35000, capacity: 2 },
-  { id: '102', type: 'Standard', status: 'Sale', price: 35000, capacity: 2 },
-  { id: '103', type: 'Deluxe', status: 'Occupé', price: 55000, capacity: 2 },
-  { id: '104', type: 'Deluxe', status: 'Libre', price: 55000, capacity: 2 },
-  { id: '201', type: 'Suite Royale', status: 'Occupé', price: 95000, capacity: 4 },
-  { id: '202', type: 'Suite Royale', status: 'Maintenance', price: 95000, capacity: 4 },
-  { id: '203', type: 'Pavillon Brunch', status: 'Libre', price: 120000, capacity: 4 },
-  { id: '204', type: 'Pavillon Brunch', status: 'Occupé', price: 120000, capacity: 4 }
+  { id: '101', type: 'Chambre', status: 'Libre', price: 15000, capacity: 2 },
+  { id: '102', type: 'Chambre', status: 'Sale', price: 15000, capacity: 2 },
+  { id: '103', type: 'Chambre', status: 'Occupé', price: 15000, capacity: 2 },
+  { id: '104', type: 'Chambre', status: 'Libre', price: 15000, capacity: 2 },
+  { id: '201', type: 'Studio', status: 'Occupé', price: 25000, capacity: 4 },
+  { id: '202', type: 'Studio', status: 'Maintenance', price: 25000, capacity: 4 },
+  { id: '203', type: 'Studio', status: 'Libre', price: 25000, capacity: 4 },
+  { id: '204', type: 'Studio', status: 'Occupé', price: 25000, capacity: 4 }
 ];
 
 export const DEFAULT_RESERVATIONS: Reservation[] = [
@@ -27,8 +27,8 @@ export const DEFAULT_RESERVATIONS: Reservation[] = [
     roomNumber: '103',
     checkIn: '2026-07-10',
     checkOut: '2026-07-14',
-    totalBill: 220000,
-    paidAmount: 220000,
+    totalBill: 76700,
+    paidAmount: 76700,
     status: 'En Cours',
     bookingSource: 'OTA',
     channelType: 'OTA',
@@ -44,8 +44,8 @@ export const DEFAULT_RESERVATIONS: Reservation[] = [
     roomNumber: '204',
     checkIn: '2026-07-09',
     checkOut: '2026-07-12',
-    totalBill: 360000,
-    paidAmount: 180000,
+    totalBill: 96500,
+    paidAmount: 50000,
     status: 'En Cours',
     bookingSource: 'Direct',
     channelType: 'Direct',
@@ -60,7 +60,7 @@ export const DEFAULT_RESERVATIONS: Reservation[] = [
     roomNumber: '201',
     checkIn: '2026-07-11',
     checkOut: '2026-07-13',
-    totalBill: 190000,
+    totalBill: 53000,
     paidAmount: 0,
     status: 'Confirmé',
     bookingSource: 'Téléphone',

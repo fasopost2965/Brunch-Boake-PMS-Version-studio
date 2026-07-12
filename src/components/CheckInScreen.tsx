@@ -27,6 +27,7 @@ interface CheckInScreenProps {
   setActiveTab: (tab: any) => void;
   selectedCheckInReservationId?: string | null;
   setSelectedCheckInReservationId?: (id: string | null) => void;
+  hotelConfig?: any;
 }
 
 export const CheckInScreen: React.FC<CheckInScreenProps> = ({
@@ -41,7 +42,8 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
   triggerToast,
   setActiveTab,
   selectedCheckInReservationId = null,
-  setSelectedCheckInReservationId
+  setSelectedCheckInReservationId,
+  hotelConfig
 }) => {
   const todayStr = '2026-07-11';
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -102,7 +104,10 @@ export const CheckInScreen: React.FC<CheckInScreenProps> = ({
   const nights = selectedRoomObj 
     ? Math.max(1, Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 3600 * 24)))
     : 0;
-  const simulatedTotalBill = selectedRoomObj ? selectedRoomObj.price * nights : 0;
+  const simulatedRoomPrice = selectedRoomObj 
+    ? (hotelConfig?.prices?.[selectedRoomObj.type] ?? selectedRoomObj.price)
+    : 0;
+  const simulatedTotalBill = simulatedRoomPrice * nights;
   const [advancePaid, setAdvancePaid] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState<'Espèces' | 'Orange Money' | 'MTN Momo' | 'Moov Money' | 'Carte Bancaire'>('Espèces');
 

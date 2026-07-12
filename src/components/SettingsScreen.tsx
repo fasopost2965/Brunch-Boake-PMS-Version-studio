@@ -30,6 +30,9 @@ import { BrunchLogo } from './BrunchLogo';
 interface SettingsScreenProps {
   hotelConfig: {
     name: string;
+    logoUrl?: string;
+    chambreCount?: number;
+    studioCount?: number;
     address: string;
     email: string;
     currency: string;
@@ -76,6 +79,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   
   // 1. Identité de l'établissement
   const [name, setName] = useState(hotelConfig.name || 'Brunch Bouaké');
+  const [logoUrl, setLogoUrl] = useState(hotelConfig.logoUrl || '');
   const [slogan, setSlogan] = useState(hotelConfig.legal?.slogan || 'L\'excellence hôtelière au cœur de Bouaké');
   const [description, setDescription] = useState(hotelConfig.legal?.description || 'Hôtel boutique de charme & restaurant brunch de référence.');
   const [email, setEmail] = useState(hotelConfig.email || 'contact@brunch-bouake.ci');
@@ -104,6 +108,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     { id: 'tax-2', name: 'Taxe de Séjour Bouaké', type: 'fixed', value: 1000, category: 'Hébergement', active: true },
     { id: 'tax-3', name: 'Taxe Touristique Locale', type: 'percentage', value: 2, category: 'Hébergement', active: true }
   ]);
+  const [applyTaxes, setApplyTaxes] = useState(hotelConfig.fiscal?.applyTaxes !== false);
   const [newTaxName, setNewTaxName] = useState('');
   const [newTaxType, setNewTaxType] = useState<'percentage' | 'fixed'>('percentage');
   const [newTaxValue, setNewTaxValue] = useState('');
@@ -117,6 +122,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [deluxePrice, setDeluxePrice] = useState(String(hotelConfig.prices?.['Deluxe'] || 55000));
   const [suitePrice, setSuitePrice] = useState(String(hotelConfig.prices?.['Suite Royale'] || 95000));
   const [pavillonPrice, setPavillonPrice] = useState(String(hotelConfig.prices?.['Pavillon Brunch'] || 120000));
+  const [chambrePrice, setChambrePrice] = useState(String(hotelConfig.prices?.['Chambre'] || 15000));
+  const [studioPrice, setStudioPrice] = useState(String(hotelConfig.prices?.['Studio'] || 25000));
+  const [chambreCount, setChambreCount] = useState(String(hotelConfig.chambreCount || 4));
+  const [studioCount, setStudioCount] = useState(String(hotelConfig.studioCount || 4));
   const [weekendMultiplier, setWeekendMultiplier] = useState(hotelConfig.policies?.weekendMultiplier || '10');
   const [highSeasonMultiplier, setHighSeasonMultiplier] = useState(hotelConfig.policies?.highSeasonMultiplier || '20');
   const [lowSeasonMultiplier, setLowSeasonMultiplier] = useState(hotelConfig.policies?.lowSeasonMultiplier || '-10');
@@ -277,11 +286,67 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   // -------------------------------------------------------------
   // EVENT HANDLERS
   // -------------------------------------------------------------
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoUrl(reader.result as string);
+        triggerToast('Nouveau logo chargé ! N\'oubliez pas de cliquer sur "Enregistrer les Paramètres" en bas de page pour sauvegarder globalement.');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleResetLogo = () => {
+    setLogoUrl('');
+    triggerToast('Logo réinitialisé. Enregistrez les paramètres pour valider.');
+  };
+
+  const handleApplyBrunchBouakeStructure = () => {
+    const cPrice = Number(chambrePrice) || 15000;
+    const sPrice = Number(studioPrice) || 25000;
+    const cCount = Number(chambreCount) || 4;
+    const sCount = Number(studioCount) || 4;
+
+    const newRooms: Room[] = [];
+    
+    // Generate Rooms (Chambres)
+    for (let i = 1; i <= cCount; i++) {
+      const id = `10${i}`;
+      newRooms.push({
+        id,
+        type: 'Chambre',
+        status: 'Libre',
+        price: cPrice,
+        capacity: 2
+      });
+    }
+
+    // Generate Studios
+    for (let i = 1; i <= sCount; i++) {
+      const id = `20${i}`;
+      newRooms.push({
+        id,
+        type: 'Studio',
+        status: 'Libre',
+        price: sPrice,
+        capacity: 4
+      });
+    }
+
+    setRooms(newRooms);
+    triggerToast(`Structure appliquée avec succès ! ${cCount} Chambres (${cPrice.toLocaleString()} F) et ${sCount} Studios (${sPrice.toLocaleString()} F) créés.`);
+  };
+
   const handleSaveAllSettings = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     const updatedConfig = {
       name,
+      logoUrl,
+      chambreCount: Number(chambreCount) || 4,
+      studioCount: Number(studioCount) || 4,
       address,
       email,
       currency,
@@ -289,7 +354,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         'Standard': Number(standardPrice) || 35000,
         'Deluxe': Number(deluxePrice) || 55000,
         'Suite Royale': Number(suitePrice) || 95000,
-        'Pavillon Brunch': Number(pavillonPrice) || 120000
+        'Pavillon Brunch': Number(pavillonPrice) || 120000,
+        'Chambre': Number(chambrePrice) || 15000,
+        'Studio': Number(studioPrice) || 25000
       },
       legal: {
         phone,
@@ -310,7 +377,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         numberFormat
       },
       fiscal: {
-        taxes
+        taxes,
+        applyTaxes
       },
       billing: {
         invoicePrefix,
@@ -647,8 +715,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
+        {/* MOBILE SECTIONS SELECT DROPDOWN */}
+        <div className="block lg:hidden col-span-1 bg-[#f3f4f6]/50 p-3.5 rounded-xl border border-[#e3e0dd] shadow-xs">
+          <label className="font-bold text-[#797067] uppercase tracking-wider text-[10px] block mb-1.5">Section de configuration :</label>
+          <div className="relative">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full bg-white text-[#423d38] font-bold text-xs rounded-lg p-3 border border-[#e3e0dd] focus:outline-none focus:border-[#fe6e00] cursor-pointer appearance-none pr-10 shadow-xs"
+            >
+              {tabsList.map(tab => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.title}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-[#797067]">
+              <SlidersHorizontal className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
         {/* LEFT COLUMN: 14 NAVIGATION ITEMS BAR (4 cols) */}
-        <div className="lg:col-span-4 flex flex-col gap-1.5 max-h-[750px] overflow-y-auto pr-1">
+        <div className="hidden lg:flex lg:col-span-4 flex-col gap-1.5 max-h-[750px] overflow-y-auto pr-1">
           <span className="text-[10px] font-bold text-[#797067] uppercase tracking-widest px-2 mb-1">Sections de Configuration</span>
           {tabsList.map(tab => {
             const IconComp = tab.icon;
@@ -676,7 +765,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* RIGHT COLUMN: ACTIVE TAB PANEL (8 cols) */}
-        <div className="lg:col-span-8 bg-white border border-[#e3e0dd] rounded-xl p-6 shadow-sm min-h-[500px]">
+        <div className="lg:col-span-8 bg-white border border-[#e3e0dd] rounded-xl p-4 md:p-6 shadow-sm min-h-[500px]">
           
           {/* 1. IDENTITE DE L'ETABLISSEMENT */}
           {activeTab === 'identite' && (
@@ -740,16 +829,37 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 </div>
               </div>
 
-              {/* Logo Preview box */}
+              {/* Logo Preview and Uploader Box */}
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center gap-5">
-                <BrunchLogo size={90} />
-                <div className="flex flex-col gap-1">
-                  <span className="font-bold text-[#423d38]">Logo Officiel Actif</span>
+                <BrunchLogo size={90} logoUrl={logoUrl} />
+                <div className="flex flex-col gap-1 flex-1">
+                  <span className="font-bold text-[#423d38]">Logo de l'Hôtel Actif</span>
                   <p className="text-[10px] text-[#797067] leading-relaxed">
-                    Le logo de <strong className="text-[#fe6e00]">Brunch Resto-Bar VIP</strong> est incorporé à la base de données du PMS. Il apparaît sur l'ensemble de vos folios, pré-factures proforma, et rapports.
+                    Le logo est incorporé dans tous les documents officiels, folios de séjours, reçus, pré-factures proforma et rapports d'activité.
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="bg-[#dcfce7] text-[#016630] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border border-[#016630]/20">Haute Définition Vectorielle SVG</span>
+                  <div className="flex items-center gap-3 mt-2">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleLogoUpload} 
+                      className="hidden" 
+                      id="logo-uploader-input" 
+                    />
+                    <label 
+                      htmlFor="logo-uploader-input"
+                      className="bg-[#fe6e00] hover:bg-[#d55c00] text-white text-[10px] font-bold px-3 py-1.5 rounded-md cursor-pointer transition-all uppercase inline-block"
+                    >
+                      Télécharger un nouveau Logo
+                    </label>
+                    {logoUrl && (
+                      <button 
+                        type="button" 
+                        onClick={handleResetLogo}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-md transition-all uppercase border border-red-200"
+                      >
+                        Réinitialiser par défaut
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -901,6 +1011,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <p className="text-[#797067] text-[11px] mt-0.5">Registre de prélèvement de la fiscalité hôtelière active de Côte d'Ivoire.</p>
               </div>
 
+              {/* Application of taxes configuration question */}
+              <div className="bg-[#fe6e00]/5 border border-[#fe6e00]/20 rounded-xl p-4 flex flex-col gap-3">
+                <span className="font-bold text-xs text-[#423d38]">Application des Taxes & TVA sur les Documents</span>
+                <p className="text-[10px] text-[#797067] leading-relaxed">
+                  Souhaitez-vous que la TVA (18%) et les autres taxes de séjour de Bouaké soient appliquées sur l'ensemble de vos documents hôteliers (folios, factures, reçus, proformas) ?
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3.5 mt-1">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-[#423d38] cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="applyTaxes" 
+                      checked={applyTaxes === true} 
+                      onChange={() => setApplyTaxes(true)} 
+                      className="text-[#fe6e00] focus:ring-[#fe6e00]" 
+                    />
+                    <span>Oui, appliquer les taxes et la TVA sur les factures et folios</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs font-semibold text-[#423d38] cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="applyTaxes" 
+                      checked={applyTaxes === false} 
+                      onChange={() => setApplyTaxes(false)} 
+                      className="text-[#fe6e00] focus:ring-[#fe6e00]" 
+                    />
+                    <span>Non, ne pas appliquer les taxes (Présentation Hors Taxes)</span>
+                  </label>
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -1011,6 +1151,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
+                  <label className="font-bold text-[#797067] uppercase tracking-widest text-[9px]">Chambre / Room (FCFA) :</label>
+                  <input type="number" value={chambrePrice} onChange={(e) => setChambrePrice(e.target.value)} className="bg-[#f3f4f6] border border-[#e3e0dd] rounded-md p-2 font-mono font-bold text-[#fe6e00]" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="font-bold text-[#797067] uppercase tracking-widest text-[9px]">Studio (FCFA) :</label>
+                  <input type="number" value={studioPrice} onChange={(e) => setStudioPrice(e.target.value)} className="bg-[#f3f4f6] border border-[#e3e0dd] rounded-md p-2 font-mono font-bold text-[#fe6e00]" />
+                </div>
+                <div className="flex flex-col gap-1">
                   <label className="font-bold text-[#797067] uppercase tracking-widest text-[9px]">Chambre Standard (FCFA) :</label>
                   <input type="number" value={standardPrice} onChange={(e) => setStandardPrice(e.target.value)} className="bg-[#f3f4f6] border border-[#e3e0dd] rounded-md p-2 font-mono font-bold" />
                 </div>
@@ -1025,6 +1173,81 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 <div className="flex flex-col gap-1">
                   <label className="font-bold text-[#797067] uppercase tracking-widest text-[9px]">Pavillon Brunch (FCFA) :</label>
                   <input type="number" value={pavillonPrice} onChange={(e) => setPavillonPrice(e.target.value)} className="bg-[#f3f4f6] border border-[#e3e0dd] rounded-md p-2 font-mono font-bold" />
+                </div>
+              </div>
+
+              {/* SECTION BRUNCH BOUAKÉ SPÉCIFIQUE */}
+              <div className="bg-[#fe6e00]/5 border border-[#fe6e00]/20 p-5 rounded-xl flex flex-col gap-4 mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded bg-[#fe6e00]/10 text-[#fe6e00]">
+                    <Building2 className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[#423d38] text-xs uppercase tracking-wider">Configuration Spécifique • Brunch Bouaké</h4>
+                    <p className="text-[10px] text-[#797067]">Configurez le nombre de chambres standard et de studios, ainsi que leurs tarifs respectifs.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1 bg-white p-3 rounded-lg border border-gray-200 shadow-xs">
+                    <span className="font-bold text-gray-700 text-[10px] uppercase tracking-wider">Chambre Individuelle (FCFA) :</span>
+                    <input 
+                      type="number" 
+                      value={chambrePrice} 
+                      onChange={(e) => setChambrePrice(e.target.value)} 
+                      className="bg-gray-50 border rounded p-1.5 font-mono font-bold mt-1 text-sm text-[#fe6e00]" 
+                    />
+                    <span className="text-[9px] text-[#797067] mt-1">Tarif standard de la chambre (Par défaut: 15 000 FCFA).</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 bg-white p-3 rounded-lg border border-gray-200 shadow-xs">
+                    <span className="font-bold text-gray-700 text-[10px] uppercase tracking-wider">Studio Equipé (FCFA) :</span>
+                    <input 
+                      type="number" 
+                      value={studioPrice} 
+                      onChange={(e) => setStudioPrice(e.target.value)} 
+                      className="bg-gray-50 border rounded p-1.5 font-mono font-bold mt-1 text-sm text-[#fe6e00]" 
+                    />
+                    <span className="text-[9px] text-[#797067] mt-1">Chambre, salon, SDB, cuisine (Par défaut: 25 000 FCFA).</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 bg-white p-3 rounded-lg border border-gray-200 shadow-xs">
+                    <span className="font-bold text-gray-700 text-[10px] uppercase tracking-wider">Nombre de Chambres :</span>
+                    <input 
+                      type="number" 
+                      value={chambreCount} 
+                      onChange={(e) => setChambreCount(e.target.value)} 
+                      className="bg-gray-50 border rounded p-1.5 font-mono font-bold mt-1 text-sm" 
+                    />
+                    <span className="text-[9px] text-[#797067] mt-1">Nombre total de chambres disponibles (Brunch Bouaké : 4).</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 bg-white p-3 rounded-lg border border-gray-200 shadow-xs">
+                    <span className="font-bold text-gray-700 text-[10px] uppercase tracking-wider">Nombre de Studios :</span>
+                    <input 
+                      type="number" 
+                      value={studioCount} 
+                      onChange={(e) => setStudioCount(e.target.value)} 
+                      className="bg-gray-50 border rounded p-1.5 font-mono font-bold mt-1 text-sm" 
+                    />
+                    <span className="text-[9px] text-[#797067] mt-1">Nombre total de studios équipés (Brunch Bouaké : 4).</span>
+                  </div>
+                </div>
+
+                <div className="bg-[#fe6e00]/10 p-3.5 rounded-lg border border-[#fe6e00]/20 flex flex-col gap-2">
+                  <span className="text-[10px] text-[#423d38] font-bold uppercase tracking-wider">
+                    ⚠️ Initialiser le plan de l'hôtel Brunch Bouaké
+                  </span>
+                  <p className="text-[9px] text-gray-600 leading-relaxed">
+                    Si vous cliquez sur le bouton ci-dessous, le système va régénérer automatiquement le plan des chambres avec exactement {chambreCount} Chambres (tarifées à {Number(chambrePrice).toLocaleString()} FCFA) et {studioCount} Studios (tarifés à {Number(studioPrice).toLocaleString()} FCFA). Les réservations actives ne seront pas perdues.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleApplyBrunchBouakeStructure}
+                    className="bg-[#fe6e00] hover:bg-[#d55c00] text-white font-extrabold py-2 px-4 rounded text-[10px] self-start transition-all uppercase cursor-pointer tracking-wider shadow-sm"
+                  >
+                    Appliquer & Générer les Chambres/Studios
+                  </button>
                 </div>
               </div>
 

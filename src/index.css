@@ -52,3 +52,37 @@
     color: #423d38;
   }
 }
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  /* Hide everything on the page */
+  body * {
+    visibility: hidden;
+  }
+  /* Ensure the printable invoice and its children are visible */
+  #printable-invoice, #printable-invoice * {
+    visibility: visible;
+  }
+  /* Position and scale the printable invoice to cover the full width */
+  #printable-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 1rem !important;
+    margin: 0 !important;
+  }
+  /* Hide print buttons and other controls during print */
+  #printable-invoice .print-hide,
+  #printable-invoice button,
+  #printable-invoice select,
+  #printable-invoice .border-t.border-\[\#e3e0dd\].pt-4.font-sans {
+    display: none !important;
+  }
+}

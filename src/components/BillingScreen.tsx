@@ -72,12 +72,15 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
   const baseRoomTotal = roomPricePerNight * nights;
 
   // Taxes calculations:
+  // Check if taxes should be applied based on configuration
+  const shouldApplyTaxes = hotelConfig?.fiscal?.applyTaxes !== false;
+
   // In Côte d'Ivoire, standard tourist tax is 1,000 F CFA per night
-  const touristTaxPerNight = 1000;
+  const touristTaxPerNight = shouldApplyTaxes ? 1000 : 0;
   const totalTouristTax = touristTaxPerNight * nights;
   
   // Local service tax or VAT (e.g. 2% representing standard local municipal tax)
-  const serviceTaxAmount = Math.round(baseRoomTotal * 0.02);
+  const serviceTaxAmount = shouldApplyTaxes ? Math.round(baseRoomTotal * 0.02) : 0;
   const defaultTaxesTotal = totalTouristTax + serviceTaxAmount;
 
   // Dynamic Brunch / POS orders charged to the room
@@ -89,17 +92,20 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
   // Let's assume currentRes.totalBill holds the entire current state,
   // and we show the breakdown nicely. If totalBill is smaller than baseRoomTotal, 
   // we adjust totalBill to represent room + taxes + extras.
-  const customExtrasAmount = currentRes ? Math.max(0, currentRes.totalBill - baseRoomTotal - defaultTaxesTotal) : 0;
+  const customExtrasAmount = currentRes ? Math.max(0, currentRes.totalBill - baseRoomTotal - (shouldApplyTaxes ? (1000 * nights + Math.round(baseRoomTotal * 0.02)) : 0)) : 0;
+
+  // Calculate true displayed total reflecting active tax options
+  const displayedTotal = baseRoomTotal + defaultTaxesTotal + ordersTotal + customExtrasAmount;
 
   // Let's get the payment status on the fly
-  const getInvoicePaymentStatus = (res: Reservation) => {
+  const getInvoicePaymentStatus = (res: Reservation, totalAmount: number) => {
     if (res.paidAmount <= 0) return 'Non Payé';
-    if (res.paidAmount < res.totalBill) return 'Partiellement Payé';
-    if (res.paidAmount >= res.totalBill) return 'Payé';
+    if (res.paidAmount < totalAmount) return 'Partiellement Payé';
+    if (res.paidAmount >= totalAmount) return 'Payé';
     return 'Non Payé';
   };
 
-  const paymentStatus = currentRes ? getInvoicePaymentStatus(currentRes) : 'Non Payé';
+  const paymentStatus = currentRes ? getInvoicePaymentStatus(currentRes, displayedTotal) : 'Non Payé';
 
   // Get payments specifically made for this reservation
   const associatedPayments = payments.filter(p => p.reservationId === selectedResId);
@@ -220,6 +226,9 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
     if (!currentRes) return;
     const documentType = invoiceMode === 'proforma' ? 'PROFORMA' : 'COMMERCIALE DÉFINITIVE';
     triggerToast(`Lancement de l'impression PDF pour la facture ${documentType} de ${currentRes.guestName}...`);
+    setTimeout(() => {
+      window.print();
+    }, 300);
   };
 
   return (
@@ -351,7 +360,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                   <div className="flex flex-col">
                     <span className="text-[10px] text-[#797067] font-semibold">Reste à solder :</span>
                     <strong className="text-base text-[#fb2c36] font-mono">
-                      {Math.max(0, currentRes.totalBill - currentRes.paidAmount).toLocaleString()} F
+                      {Math.max(0, displayedTotal - currentRes.paidAmount).toLocaleString()} F
                     </strong>
                   </div>
                   
@@ -368,7 +377,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                   {paymentStatus !== 'Payé' ? (
                     <button
                       onClick={() => {
-                        setPaymentAmount(String(Math.max(0, currentRes.totalBill - currentRes.paidAmount)));
+                        setPaymentAmount(String(Math.max(0, displayedTotal - currentRes.paidAmount)));
                         setShowPaymentDrawer(true);
                       }}
                       className="bg-[#016630] hover:bg-[#025227] text-white font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
@@ -499,10 +508,10 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
               ) : (
                 
                 // INVOICE PREVIEW WORKSPACE
-                <div className="bg-white rounded-xl border border-[#e3e0dd] p-8 shadow-md flex flex-col gap-6 animate-scale-up text-xs font-mono relative overflow-hidden">
+                <div id="printable-invoice" className="bg-white rounded-xl border border-[#e3e0dd] p-4 sm:p-8 shadow-md flex flex-col gap-6 animate-scale-up text-xs font-mono relative overflow-hidden">
                   
                   {/* Watermark / Stamp overlay depending on status */}
-                  <div className="absolute top-6 right-6 flex flex-col items-end pointer-events-none select-none z-10 opacity-80">
+                  <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex flex-col items-end pointer-events-none select-none z-10 opacity-80 scale-90 sm:scale-100 origin-top-right">
                     <Receipt className="w-10 h-10 text-[#797067]/30" />
                     {invoiceMode === 'proforma' ? (
                       <span className="text-[9px] font-black bg-[#fe6e00]/10 text-[#fe6e00] border border-[#fe6e00]/20 px-2 py-0.5 rounded-md mt-1 tracking-widest uppercase font-sans">
@@ -513,7 +522,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                         FACTURE COMMERCIALE DÉFINITIVE
                       </span>
                     )}
-
+ 
                     {/* Stamp payment indicator */}
                     <div className={`mt-3 border-2 transform rotate-12 px-3 py-1.5 rounded text-xs font-black tracking-widest font-sans ${
                       paymentStatus === 'Payé' ? 'border-[#016630] text-[#016630] bg-[#016630]/5' :
@@ -524,7 +533,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                        paymentStatus === 'Partiellement Payé' ? 'ACOMPTE PAYÉ' : 'DÛ / NON PAYÉ'}
                     </div>
                   </div>
-
+ 
                   {/* HOTEL GREETINGS HEADER */}
                   <div className="flex items-center gap-4 border-b border-[#e3e0dd] pb-4">
                     {(!hotelConfig || hotelConfig.templates?.showLogo !== false) && (
@@ -551,9 +560,9 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                       )}
                     </div>
                   </div>
-
+ 
                   {/* CLIENT AND INVOICE METADATA */}
-                  <div className="grid grid-cols-2 gap-4 border-b border-[#e3e0dd] pb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-[#e3e0dd] pb-4">
                     <div className="flex flex-col gap-1 text-[#423d38]">
                       <span className="text-[#fe6e00] font-bold font-sans text-[9px] uppercase tracking-wider">Facturé à :</span>
                       <span className="font-extrabold text-[#423d38] font-sans text-sm">{currentRes.guestName}</span>
@@ -561,8 +570,8 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                       {currentRes.originCountry && <span>Pays d'origine : <strong>{currentRes.originCountry}</strong></span>}
                       <span>Chambre de séjour : <strong>CH {currentRes.roomNumber} ({currentRoom?.type || 'Standard'})</strong></span>
                     </div>
-
-                    <div className="flex flex-col gap-1 text-[#423d38] text-right">
+ 
+                    <div className="flex flex-col gap-1 text-[#423d38] text-left sm:text-right">
                       <span className="text-[#fe6e00] font-bold font-sans text-[9px] uppercase tracking-wider">Identifiants comptables :</span>
                       <span>N° Facture : <strong>FACT-{currentRes.id}</strong></span>
                       <span>Dates du séjour : du {currentRes.checkIn} au {currentRes.checkOut} ({nights} nuits)</span>
@@ -642,7 +651,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                     <div className="h-px bg-dashed bg-[#e3e0dd] my-1"></div>
                     <div className="flex justify-between font-black text-[#423d38] text-sm">
                       <span>Montant Total TTC :</span>
-                      <span className="text-[#fe6e00] font-mono">{(currentRes.totalBill).toLocaleString()} F CFA</span>
+                      <span className="text-[#fe6e00] font-mono">{displayedTotal.toLocaleString()} F CFA</span>
                     </div>
                     <div className="flex justify-between font-bold text-[#016630] text-[11px] bg-[#dcfce7]/40 px-2 py-0.5 rounded">
                       <span>Total déjà payé :</span>
@@ -650,7 +659,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
                     </div>
                     <div className="flex justify-between font-bold text-[#fb2c36] text-[11px] bg-[#fef2f2] px-2 py-0.5 rounded">
                       <span>Solde restant dû :</span>
-                      <span className="font-mono">{Math.max(0, currentRes.totalBill - currentRes.paidAmount).toLocaleString()} F</span>
+                      <span className="font-mono">{Math.max(0, displayedTotal - currentRes.paidAmount).toLocaleString()} F</span>
                     </div>
                   </div>
 

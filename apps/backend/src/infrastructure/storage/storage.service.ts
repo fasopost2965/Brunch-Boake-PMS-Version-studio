@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class StorageService {
@@ -16,7 +16,7 @@ export class StorageService {
 
   async uploadDocument(file: Express.Multer.File): Promise<string> {
     const fileExtension = path.extname(file.originalname);
-    const fileName = `${uuidv4()}${fileExtension}`;
+    const fileName = `${crypto.randomUUID()}${fileExtension}`;
     const filePath = path.join(this.uploadDir, fileName);
 
     return new Promise((resolve, reject) => {

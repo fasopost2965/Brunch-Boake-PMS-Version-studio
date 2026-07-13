@@ -1,3 +1,7 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 async function run() {
   console.log('Testing Concurrency for Reservation Creation...');
   const API_URL = 'http://localhost:3001/api';
@@ -13,7 +17,7 @@ async function run() {
         password: 'admin_pass_2026',
       })
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     if (!res.ok) throw new Error(data.message || 'Login failed');
     token = data.access_token;
   } catch (err: any) {
@@ -21,11 +25,18 @@ async function run() {
     process.exit(1);
   }
 
+  // Find Room 101
+  const room = await prisma.room.findUnique({ where: { number: '101' } });
+  if (!room) {
+    console.error('Room 101 not found');
+    process.exit(1);
+  }
+
   // 2. Setup the reservation payload
-  // Using Room 101 (id: 1) from the seed and Guest John Doe (id: 1)
+  // Using Room 101 and Guest John Doe (id: 1)
   const reservationPayload = {
     guestId: 1,
-    roomId: 1,
+    roomId: room.id,
     checkInDate: '2026-08-01T14:00:00Z',
     checkOutDate: '2026-08-05T12:00:00Z',
     agreedRate: 200000,
@@ -46,7 +57,7 @@ async function run() {
       headers,
       body: JSON.stringify(reservationPayload)
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     return { status: res.status, data };
   };
 
@@ -67,6 +78,22 @@ async function run() {
   } else {
     console.error('❌ TEST FAILED: Overlap lock did not work as expected.');
   }
+
+  // Clean up any created reservation
+  const createdIds = [res1.data?.id, res2.data?.id].filter(Boolean);
+  for (const id of createdIds) {
+    await prisma.folioLine.deleteMany({ where: { folio: { reservationId: id } } });
+    await prisma.folio.deleteMany({ where: { reservationId: id } });
+    await prisma.reservation.delete({ where: { id } });
+    console.log(`Cleaned up reservation ${id}`);
+  }
 }
 
-run();
+run()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

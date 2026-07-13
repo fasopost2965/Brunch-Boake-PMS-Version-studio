@@ -33,7 +33,7 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'admin@brunchbouake.com', password: 'admin_pass_2026' })
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     token = data.access_token;
   } catch (err: any) {
     console.error('Login failed:', err.message);
@@ -45,21 +45,29 @@ async function run() {
     'Content-Type': 'application/json',
   };
 
-  // We know room 1 (C1) is currently DIRTY from the check-out test in phase 1 (or we can just force it).
-  console.log('Ensuring Room 1 (C1) is DIRTY...');
-  await prisma.room.update({ where: { id: 1 }, data: { cleanlinessStatus: 'DIRTY' } });
+  // Find Room 101 dynamically
+  const roomObj = await prisma.room.findUnique({ where: { number: '101' } });
+  if (!roomObj) {
+    console.error('Room 101 not found in database');
+    process.exit(1);
+  }
+  const roomId = roomObj.id;
 
-  console.log('Creating a Housekeeping task for Room 1 (STAYOVER_CLEAN)...');
+  // We know room 101 is currently DIRTY from the check-out test in phase 1 (or we can just force it).
+  console.log(`Ensuring Room 101 (ID: ${roomId}) is DIRTY...`);
+  await prisma.room.update({ where: { id: roomId }, data: { cleanlinessStatus: 'DIRTY' } });
+
+  console.log(`Creating a Housekeeping task for Room 101 (${roomId}) (STAYOVER_CLEAN)...`);
   const taskRes = await fetch(`${API_URL}/housekeeping/tasks`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      roomId: 1,
+      roomId: roomId,
       type: 'STAYOVER_CLEAN',
-      status: 'TODO'
     })
   });
-  const task = await taskRes.json();
+  const task = (await taskRes.json()) as any;
+  console.log('Task response:', task);
   console.log(`Task created with ID: ${task.id}`);
 
   console.log('Completing the task...');
@@ -68,11 +76,11 @@ async function run() {
     headers,
     body: JSON.stringify({ status: 'DONE' })
   });
-  const completedTask = await completeRes.json();
+  const completedTask = (await completeRes.json()) as any;
 
-  console.log('Checking Room 1 cleanlinessStatus...');
-  const room = await prisma.room.findUnique({ where: { id: 1 } });
-  console.log(`Room 1 cleanlinessStatus: ${room?.cleanlinessStatus}`);
+  console.log('Checking Room 101 cleanlinessStatus...');
+  const room = await prisma.room.findUnique({ where: { id: roomId } });
+  console.log(`Room 101 cleanlinessStatus: ${room?.cleanlinessStatus}`);
 
   if (room?.cleanlinessStatus === 'CLEAN') {
     console.log('✅ TEST PASSED: Housekeeping task completion automatically updated room cleanliness to CLEAN.');
@@ -82,17 +90,16 @@ async function run() {
 
   // Test Inspection
   console.log('\n--- Testing Inspection Task ---');
-  console.log('Creating Inspection task for Room 1...');
+  console.log('Creating Inspection task for Room 101...');
   const inspRes = await fetch(`${API_URL}/housekeeping/tasks`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      roomId: 1,
+      roomId: roomId,
       type: 'INSPECTION',
-      status: 'TODO'
     })
   });
-  const inspTask = await inspRes.json();
+  const inspTask = (await inspRes.json()) as any;
 
   console.log('Attempting to complete without result (should fail)...');
   const failRes = await fetch(`${API_URL}/housekeeping/tasks/${inspTask.id}`, {
@@ -109,14 +116,25 @@ async function run() {
     body: JSON.stringify({ status: 'DONE', inspectionResult: 'DIRTY' })
   });
   
-  const roomAfterInsp = await prisma.room.findUnique({ where: { id: 1 } });
-  console.log(`Room 1 cleanlinessStatus after inspection: ${roomAfterInsp?.cleanlinessStatus}`);
+  const roomAfterInsp = await prisma.room.findUnique({ where: { id: roomId } });
+  console.log(`Room 101 cleanlinessStatus after inspection: ${roomAfterInsp?.cleanlinessStatus}`);
 
   if (roomAfterInsp?.cleanlinessStatus === 'DIRTY') {
     console.log('✅ TEST PASSED: Inspection result automatically updated room cleanliness to DIRTY.');
   } else {
     console.error('❌ TEST FAILED: Room cleanliness was not updated to DIRTY.');
   }
+
+  // Cleanup
+  await prisma.housekeepingTask.deleteMany({ where: { roomId } });
+  await prisma.room.update({ where: { id: roomId }, data: { cleanlinessStatus: 'CLEAN' } });
 }
 
-run();
+run()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

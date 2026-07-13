@@ -14,7 +14,7 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'admin@brunchbouake.com', password: 'admin_pass_2026' })
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     token = data.access_token;
   } catch (err: any) {
     console.error('Login failed:', err.message);
@@ -67,7 +67,7 @@ async function run() {
   
   if (lineReq.status === 400) {
     console.log('✅ TAX line correctly REJECTED due to tax exemption (400 BadRequest).');
-    const body = await lineReq.json();
+    const body = (await lineReq.json()) as any;
     console.log('Error message:', body.message);
   } else {
     console.error(`❌ TAX line was NOT rejected. Status: ${lineReq.status}`);

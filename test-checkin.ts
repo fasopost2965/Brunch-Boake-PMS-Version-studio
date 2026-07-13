@@ -1,3 +1,7 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 async function run() {
   console.log('Testing Check-in Logic...');
   const API_URL = 'http://localhost:3001/api';
@@ -13,7 +17,7 @@ async function run() {
         password: 'admin_pass_2026',
       })
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     token = data.access_token;
   } catch (err: any) {
     console.error('Failed to login:', err.message);
@@ -25,12 +29,33 @@ async function run() {
     'Content-Type': 'application/json',
   };
 
-  // We use reservation id: 1 (created in the previous test)
-  const reservationId = 1;
+  // Find Room 101
+  const room = await prisma.room.findUnique({ where: { number: '101' } });
+  if (!room) {
+    console.error('Room 101 not found in database');
+    process.exit(1);
+  }
+
+  // Create a temporary reservation
+  const reservation = await prisma.reservation.create({
+    data: {
+      guestId: 1,
+      roomId: room.id,
+      checkInDate: new Date(),
+      checkOutDate: new Date(Date.now() + 24 * 3600 * 1000), // tomorrow
+      agreedRate: 50000,
+      source: 'DIRECT',
+      createdById: 1,
+      status: 'CONFIRMED'
+    }
+  });
+
+  const reservationId = reservation.id;
+  console.log(`Created reservation ID ${reservationId}`);
 
   // 2. Room 101 starts as CLEAN and OPERATIONAL by default, let's mark it as DIRTY
   console.log('Setting Room 101 to DIRTY...');
-  await fetch(`${API_URL}/settings/rooms/1`, {
+  await fetch(`${API_URL}/settings/rooms/${room.id}`, {
     method: 'PUT',
     headers,
     body: JSON.stringify({ cleanlinessStatus: 'DIRTY' })
@@ -55,6 +80,19 @@ async function run() {
   });
   console.log(`Status: ${resSuccess.status} (Expected 200/201)`);
   console.log(await resSuccess.json());
+
+  // Clean up
+  await prisma.folioLine.deleteMany({ where: { folio: { reservationId } } });
+  await prisma.folio.deleteMany({ where: { reservationId } });
+  await prisma.reservation.delete({ where: { id: reservationId } });
+  await prisma.room.update({ where: { id: room.id }, data: { cleanlinessStatus: 'CLEAN' } });
 }
 
-run();
+run()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

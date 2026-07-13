@@ -14,7 +14,7 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'admin@brunchbouake.com', password: 'admin_pass_2026' })
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     token = data.access_token;
   } catch (err: any) {
     console.error('Login failed:', err.message);
@@ -110,7 +110,7 @@ async function run() {
       unitPrice: 0, // Should be overridden by SystemSettings (1000) * adults (2) * nights (1) = 2000
     })
   });
-  const line = await lineReq.json();
+  const line = (await lineReq.json()) as any;
 
   if (parseFloat(line.unitPrice) === 2000 && parseFloat(line.amount) === 2000) {
     console.log('✅ TAX line was correctly calculated based on SystemSettings (1000 * 2 adults * 1 night = 2000)');
@@ -140,7 +140,7 @@ async function run() {
   // 6. Verify Daily Snapshot for yesterday
   const yestIso = yesterday.toISOString().split('T')[0];
   const snapReq = await fetch(`${API_URL}/reports/snapshot?date=${yestIso}`, { headers });
-  const snapshot = await snapReq.json();
+  const snapshot = (await snapReq.json()) as any;
   
   if (snapshot && snapshot.date) {
     console.log('\n✅ Daily Snapshot created for yesterday:');
